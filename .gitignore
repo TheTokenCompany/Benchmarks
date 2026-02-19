@@ -1,0 +1,10 @@
+# Results
+financebench/results/
+
+# Environment
+financebench/.env
+financebench/.venv/
+
+# Python
+__pycache__/
+*.pyc
