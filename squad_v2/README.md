@@ -8,7 +8,7 @@ Each question is paired with a Wikipedia paragraph as context. SQuAD 2.0 combine
 
 ## Evaluation
 
-Uses **LLM-as-judge** (GPT-5.2) to compare the model's answer against the gold answer. The judge handles synonym equivalency, phrasing differences, and extra detail. For unanswerable questions, the model must indicate the question cannot be answered (e.g. "unanswerable", "cannot be determined").
+Uses **LLM-as-judge** (gpt-5-mini) to compare the model's answer against the gold answer. The judge handles synonym equivalency, phrasing differences, and extra detail. For unanswerable questions, the model must indicate the question cannot be answered (e.g. "unanswerable", "cannot be determined").
 
 ## Summary Breakdowns
 

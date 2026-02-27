@@ -12,7 +12,7 @@ Bear compression is applied only to the **story** (source passage). The conversa
 
 ## Evaluation
 
-Uses **LLM-as-judge** (GPT-5.2) to compare the model's answer against the gold answer. The judge handles synonym equivalency, phrasing differences, yes/no matching, and short extractive answers.
+Uses **LLM-as-judge** (gpt-5-mini) to compare the model's answer against the gold answer. The judge handles synonym equivalency, phrasing differences, yes/no matching, and short extractive answers.
 
 ## Summary Breakdowns
 

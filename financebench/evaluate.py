@@ -46,7 +46,7 @@ def judge_answer(question: str, gold_answer: str, model_answer: str) -> dict:
                     {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
                     {"role": "user", "content": user_msg},
                 ],
-                temperature=0,
+
                 max_completion_tokens=200,
             )
             text = response.choices[0].message.content.strip()

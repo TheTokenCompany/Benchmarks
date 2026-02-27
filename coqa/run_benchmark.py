@@ -17,13 +17,18 @@ from compress import compress_text
 from evaluate import judge_answer
 
 
+def estimate_tokens(text: str) -> int:
+    """Estimate token count from character length."""
+    return len(text) // 4
+
+
 def load_coqa():
     """Load the CoQA validation set."""
     ds = load_dataset(config.DATASET_NAME, split="validation")
     return ds
 
 
-def flatten_conversations(dataset, limit: int | None = None) -> list[dict]:
+def flatten_conversations(dataset) -> list[dict]:
     """Flatten conversations into individual question items.
 
     Each conversation has a story and multiple Q&A turns. We expand each turn
@@ -35,8 +40,6 @@ def flatten_conversations(dataset, limit: int | None = None) -> list[dict]:
     """
     items = []
     conversations = list(dataset)
-    if limit is not None:
-        conversations = conversations[:limit]
 
     for conv_idx, conv in enumerate(conversations):
         story = conv["story"].strip()
@@ -95,7 +98,7 @@ def query_llm(messages: list[dict]) -> str:
             response = client.chat.completions.create(
                 model=config.OPENAI_MODEL,
                 messages=messages,
-                temperature=0,
+
                 max_completion_tokens=1024,
             )
             return response.choices[0].message.content.strip()
@@ -299,7 +302,7 @@ def main():
         "--limit",
         type=int,
         default=None,
-        help="Limit number of conversations (for testing)",
+        help="Limit number of questions (for testing)",
     )
     args = parser.parse_args()
 
@@ -319,16 +322,30 @@ def main():
 
     print("Loading CoQA dataset (validation split)...")
     dataset = load_coqa()
-    print(f"Loaded {len(dataset)} conversations\n")
+    print(f"Loaded {len(dataset)} conversations")
 
     print("Flattening conversations into individual questions...")
-    items = flatten_conversations(dataset, limit=args.limit)
-    print(f"Expanded to {len(items)} questions\n")
+    items = flatten_conversations(dataset)
+    total_questions = len(items)
+    if args.limit is not None:
+        items = items[:args.limit]
+    print(f"Expanded to {total_questions} questions total, using {len(items)}")
+
+    # Filter out questions whose uncompressed prompt exceeds the model's input token limit
+    filtered_items = []
+    for item in items:
+        messages = build_prompt(item["story"], item["prior_turns"], item["question"])
+        prompt_text = messages[0]["content"] + "\n" + messages[1]["content"]
+        if estimate_tokens(prompt_text) <= config.MAX_INPUT_TOKENS:
+            filtered_items.append(item)
+    discarded = total_questions - len(filtered_items)
+    print(f"Filtered: {len(filtered_items)} questions within {config.MAX_INPUT_TOKENS:,}-token limit, "
+          f"{discarded} discarded ({discarded}/{total_questions})\n")
 
     all_results = {}
     for cfg_name in configs_to_run:
         print(f"Running config: {cfg_name}")
-        results = run_single_config(cfg_name, items)
+        results = run_single_config(cfg_name, filtered_items)
         all_results[cfg_name] = results
         print_summary(cfg_name, results)
 

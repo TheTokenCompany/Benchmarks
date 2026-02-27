@@ -1,6 +1,6 @@
 # Bear Compression Benchmarks
 
-Measures how [Bear](https://thetokencompany.com) input token compression affects GPT-5.2 accuracy across multiple datasets.
+Measures how [Bear](https://thetokencompany.com) input token compression affects gpt-5-mini accuracy across multiple datasets.
 
 ## Benchmarks
 
@@ -8,7 +8,6 @@ Measures how [Bear](https://thetokencompany.com) input token compression affects
 |-----------|---------|-----------|---------------|------------|
 | [`financebench/`](financebench/) | [PatronusAI/financebench](https://huggingface.co/datasets/PatronusAI/financebench) | 150 | Free-text financial | LLM-as-judge |
 | [`longbench_v2/`](longbench_v2/) | [zai-org/LongBench-v2](https://huggingface.co/datasets/zai-org/LongBench-v2) | 503 | Multiple-choice (A/B/C/D) | Regex extraction |
-| [`mrcr_v2/`](mrcr_v2/) | [openai/mrcr](https://huggingface.co/datasets/openai/mrcr) (8-needle) | ~800 | Long creative writing + hash | SequenceMatcher similarity |
 | [`squad_v2/`](squad_v2/) | [rajpurkar/squad_v2](https://huggingface.co/datasets/rajpurkar/squad_v2) | 11,900 | Extractive QA + unanswerable | LLM-as-judge |
 | [`coqa/`](coqa/) | [stanfordnlp/coqa](https://huggingface.co/datasets/stanfordnlp/coqa) | ~7,500 | Conversational free-text QA | LLM-as-judge |
 
@@ -35,7 +34,7 @@ Or just run any benchmark — it will prompt for keys on first run.
 ## Running a Benchmark
 
 ```bash
-cd financebench   # or longbench_v2, mrcr_v2
+cd financebench   # or longbench_v2
 ./run.sh
 ```
 

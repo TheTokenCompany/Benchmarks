@@ -8,7 +8,7 @@ Each question is paired with oracle context (gold evidence pages from SEC filing
 
 ## Evaluation
 
-Uses **LLM-as-judge** (GPT-5.2) to compare the model's answer against the verified gold answer. The judge handles equivalent number formats ("3.5 billion" == "$3.5B"), percentage notation, and minor rounding differences (within 2%).
+Uses **LLM-as-judge** (gpt-5-mini) to compare the model's answer against the verified gold answer. The judge handles equivalent number formats ("3.5 billion" == "$3.5B"), percentage notation, and minor rounding differences (within 2%).
 
 ## Summary Breakdowns
 

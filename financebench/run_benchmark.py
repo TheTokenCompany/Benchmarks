@@ -52,7 +52,7 @@ def query_llm(messages: list[dict]) -> str:
             response = client.chat.completions.create(
                 model=config.OPENAI_MODEL,
                 messages=messages,
-                temperature=0,
+
                 max_completion_tokens=1024,
             )
             return response.choices[0].message.content.strip()

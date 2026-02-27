@@ -17,6 +17,11 @@ from compress import compress_text
 from evaluate import judge_answer
 
 
+def estimate_tokens(text: str) -> int:
+    """Estimate token count from character length."""
+    return len(text) // 4
+
+
 def load_squad_v2():
     """Load the SQuAD 2.0 validation set."""
     ds = load_dataset(config.DATASET_NAME, split="validation")
@@ -58,7 +63,7 @@ def query_llm(messages: list[dict]) -> str:
             response = client.chat.completions.create(
                 model=config.OPENAI_MODEL,
                 messages=messages,
-                temperature=0,
+
                 max_completion_tokens=1024,
             )
             return response.choices[0].message.content.strip()
@@ -90,7 +95,7 @@ def get_completed_ids(results: list[dict]) -> set:
     return {r["question_id"] for r in results if "question_id" in r}
 
 
-def run_single_config(config_name: str, dataset, limit: int | None = None):
+def run_single_config(config_name: str, items: list, limit: int | None = None):
     """Run benchmark for a single configuration."""
     cfg = config.CONFIGS[config_name]
     is_compressed = cfg["compressed"]
@@ -103,7 +108,6 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
     results = load_existing_results(results_path)
     completed_ids = get_completed_ids(results)
 
-    items = list(dataset)
     if limit is not None:
         items = items[:limit]
 
@@ -282,12 +286,27 @@ def main():
 
     print("Loading SQuAD 2.0 dataset (validation split)...")
     dataset = load_squad_v2()
-    print(f"Loaded {len(dataset)} questions\n")
+    total_loaded = len(dataset)
+    print(f"Loaded {total_loaded} questions")
+
+    # Filter out questions whose uncompressed prompt exceeds the model's input token limit
+    items = list(dataset)
+    if args.limit is not None:
+        items = items[:args.limit]
+    filtered_items = []
+    for item in items:
+        context = extract_context(item)
+        prompt_text = config.SYSTEM_PROMPT + "\n" + f"Context:\n{context}\n\nQuestion: {item['question']}"
+        if estimate_tokens(prompt_text) <= config.MAX_INPUT_TOKENS:
+            filtered_items.append(item)
+    discarded = len(items) - len(filtered_items)
+    print(f"Filtered: {len(filtered_items)} questions within {config.MAX_INPUT_TOKENS:,}-token limit, "
+          f"{discarded} discarded ({discarded}/{len(items)})\n")
 
     all_results = {}
     for cfg_name in configs_to_run:
         print(f"Running config: {cfg_name}")
-        results = run_single_config(cfg_name, dataset, limit=args.limit)
+        results = run_single_config(cfg_name, filtered_items, limit=None)
         all_results[cfg_name] = results
         print_summary(cfg_name, results)
 

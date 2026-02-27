@@ -30,7 +30,6 @@ SYSTEM_PROMPT = (
 
 CONFIGS = {
     "control": {"compressed": False, "aggressiveness": None},
-    "bear_0.05": {"compressed": True, "aggressiveness": 0.05},
     "bear_0.1": {"compressed": True, "aggressiveness": 0.1},
     "bear_0.3": {"compressed": True, "aggressiveness": 0.3},
     "bear_0.4": {"compressed": True, "aggressiveness": 0.4},
