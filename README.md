@@ -9,6 +9,7 @@ Measures how [Bear](https://thetokencompany.com) input token compression affects
 | [`financebench/`](financebench/) | [PatronusAI/financebench](https://huggingface.co/datasets/PatronusAI/financebench) | 150 | Free-text financial | LLM-as-judge |
 | [`longbench_v2/`](longbench_v2/) | [zai-org/LongBench-v2](https://huggingface.co/datasets/zai-org/LongBench-v2) | 503 | Multiple-choice (A/B/C/D) | Regex extraction |
 | [`mrcr_v2/`](mrcr_v2/) | [openai/mrcr](https://huggingface.co/datasets/openai/mrcr) (8-needle) | ~800 | Long creative writing + hash | SequenceMatcher similarity |
+| [`squad_v2/`](squad_v2/) | [rajpurkar/squad_v2](https://huggingface.co/datasets/rajpurkar/squad_v2) | 11,900 | Extractive QA + unanswerable | LLM-as-judge |
 
 Each benchmark compares a control baseline (raw context) against multiple Bear compression aggressiveness levels to measure the accuracy/compression tradeoff.
 
