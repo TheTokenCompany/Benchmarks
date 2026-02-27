@@ -9,13 +9,12 @@ BEAR_API_KEY = os.getenv("BEAR_API_KEY")
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.2")
 BEAR_MODEL = "bear-1.2"
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gpt-5.2")
 
 BEAR_API_URL = "https://api.thetokencompany.com/v1/compress"
 
 AGGRESSIVENESS_LEVELS = [0.05, 0.1, 0.3, 0.4, 0.5, 0.7]
 
-DATASET_NAME = "PatronusAI/financebench"
+DATASET_NAME = "zai-org/LongBench-v2"
 
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 2  # seconds
@@ -23,8 +22,8 @@ RETRY_BASE_DELAY = 2  # seconds
 RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
 
 SYSTEM_PROMPT = (
-    "You are a financial analyst. Answer the question based only on the provided context. "
-    "Be precise with numbers, currencies, and percentages."
+    "Answer the multiple-choice question based only on the provided context. "
+    "Respond with only the letter of the correct answer (A, B, C, or D)."
 )
 
 CONFIGS = {
