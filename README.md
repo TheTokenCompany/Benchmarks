@@ -11,7 +11,7 @@ Measures how [Bear](https://thetokencompany.com) input token compression affects
 | [`squad_v2/`](squad_v2/) | [rajpurkar/squad_v2](https://huggingface.co/datasets/rajpurkar/squad_v2) | 11,900 | Extractive QA + unanswerable | LLM-as-judge |
 | [`coqa/`](coqa/) | [stanfordnlp/coqa](https://huggingface.co/datasets/stanfordnlp/coqa) | ~7,500 | Conversational free-text QA | LLM-as-judge |
 
-Each benchmark compares a control baseline (raw context) against multiple Bear compression aggressiveness levels to measure the accuracy/compression tradeoff.
+Each benchmark compares a control baseline (raw context) against multiple Bear model × aggressiveness combinations to measure the accuracy/compression tradeoff.
 
 ## Prerequisites
 
@@ -31,10 +31,23 @@ cp .env.example .env
 
 Or just run any benchmark — it will prompt for keys on first run.
 
+## Configuration
+
+All settings live in [`config.yaml`](config.yaml) at the repo root:
+
+- **Shared settings**: LLM model, Bear API URL, retry policy, token limits
+- **Bear models**: list of Bear model versions to evaluate (e.g. `bear-1.2`)
+- **Aggressiveness levels**: list of compression levels (e.g. `[0.1, 0.3, 0.4, 0.5, 0.7]`)
+- **Per-benchmark**: dataset name, system prompt
+
+Configs are **auto-generated** from `bear_models × aggressiveness_levels`. For example, with one model and five levels, the generated configs are: `control`, `bear-1.2--0.1`, `bear-1.2--0.3`, `bear-1.2--0.4`, `bear-1.2--0.5`, `bear-1.2--0.7`.
+
+To add a new Bear model, just add it to the `bear_models` list in `config.yaml`.
+
 ## Running a Benchmark
 
 ```bash
-cd financebench   # or longbench_v2
+cd financebench   # or longbench_v2, squad_v2, coqa
 ./run.sh
 ```
 
@@ -43,24 +56,11 @@ The script handles virtual environment creation, dependency installation, and ex
 ### Options
 
 ```bash
-./run.sh --limit 5              # Test with 5 questions
-./run.sh --config control       # Run a single config
-./run.sh --config bear_0.1      # Run a single config
-./run.sh --config bear_0.3 --limit 10  # Combine
+./run.sh --limit 5                          # Test with 5 questions
+./run.sh --config control                   # Run a single config
+./run.sh --config bear-1.2--0.1             # Specific model + aggressiveness
+./run.sh --config bear-1.2--0.3 --limit 10  # Combine
 ```
-
-### Configs
-
-Each benchmark runs these configurations by default:
-
-| Config | Context | Bear Aggressiveness |
-|--------|---------|---------------------|
-| `control` | Raw | — |
-| `bear_0.05` | Compressed | 0.05 |
-| `bear_0.1` | Compressed | 0.1 |
-| `bear_0.3` | Compressed | 0.3 |
-
-Additional levels (`bear_0.4`, `bear_0.5`, `bear_0.7`) are available via `--config`.
 
 ### Resume Support
 
@@ -68,7 +68,7 @@ If a run is interrupted, re-run the same command. Completed questions are skippe
 
 ## Results
 
-Each benchmark writes results to `<benchmark>/results/<config>.json` and prints:
+Each benchmark writes results to `<benchmark>/results/<config>.json` (e.g. `results/bear-1.2--0.3.json`) and prints:
 - Accuracy or score per config
 - Compression ratio and token savings (for Bear configs)
 - Breakdowns by dataset-specific categories

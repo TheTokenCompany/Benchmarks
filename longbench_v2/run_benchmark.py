@@ -96,6 +96,7 @@ def run_single_config(config_name: str, items: list, limit: int | None = None):
     cfg = config.CONFIGS[config_name]
     is_compressed = cfg["compressed"]
     aggressiveness = cfg["aggressiveness"]
+    bear_model = cfg["bear_model"]
 
     os.makedirs(config.RESULTS_DIR, exist_ok=True)
     results_path = os.path.join(config.RESULTS_DIR, f"{config_name}.json")
@@ -139,7 +140,7 @@ def run_single_config(config_name: str, items: list, limit: int | None = None):
         compression_info = {}
         if is_compressed:
             try:
-                comp_result = compress_text(raw_context, aggressiveness)
+                comp_result = compress_text(raw_context, aggressiveness, bear_model)
                 context_for_llm = comp_result["compressed_text"]
                 compression_info = {
                     "original_tokens": comp_result["original_tokens"],

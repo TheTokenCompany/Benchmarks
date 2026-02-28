@@ -3,3 +3,4 @@ datasets
 requests
 python-dotenv
 tqdm
+pyyaml
