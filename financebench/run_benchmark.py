@@ -260,6 +260,9 @@ def main():
     )
     args = parser.parse_args()
 
+    # CLI --limit overrides config.yaml limit
+    limit = args.limit if args.limit is not None else config.NUM_QUESTIONS_LIMIT
+
     # Validate API keys
     if not config.OPENAI_API_KEY:
         print("ERROR: OPENAI_API_KEY not set. Copy .env.example to .env and fill in your key.")
@@ -281,7 +284,7 @@ def main():
     all_results = {}
     for cfg_name in configs_to_run:
         print(f"Running config: {cfg_name}")
-        results = run_single_config(cfg_name, dataset, limit=args.limit)
+        results = run_single_config(cfg_name, dataset, limit=limit)
         all_results[cfg_name] = results
         print_summary(cfg_name, results)
 

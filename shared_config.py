@@ -62,6 +62,7 @@ def load_config(benchmark_name: str) -> dict:
     # Benchmark-specific values
     cfg["DATASET_NAME"] = bench["dataset_name"]
     cfg["SYSTEM_PROMPT"] = bench["system_prompt"]
+    cfg["NUM_QUESTIONS_LIMIT"] = bench.get("num_questions_limit")  # None means all
 
     # Auto-generate CONFIGS from bear_models × aggressiveness_levels
     configs = {"control": {"compressed": False, "aggressiveness": None, "bear_model": None}}

@@ -271,6 +271,9 @@ def main():
     )
     args = parser.parse_args()
 
+    # CLI --limit overrides config.yaml limit
+    limit = args.limit if args.limit is not None else config.NUM_QUESTIONS_LIMIT
+
     # Validate API keys
     if not config.OPENAI_API_KEY:
         print("ERROR: OPENAI_API_KEY not set. Copy .env.example to .env and fill in your key.")
@@ -292,8 +295,8 @@ def main():
 
     # Filter out questions whose uncompressed prompt exceeds the model's input token limit
     items = list(dataset)
-    if args.limit is not None:
-        items = items[:args.limit]
+    if limit is not None:
+        items = items[:limit]
     filtered_items = []
     for item in items:
         context = extract_context(item)
