@@ -1,10 +1,14 @@
 # Results
-financebench/results/
+**/results/
 
 # Environment
-financebench/.env
-financebench/.venv/
+.env
+.venv/
 
 # Python
 __pycache__/
 *.pyc
+
+.claude/
+CLAUDE.md
+bench.txt

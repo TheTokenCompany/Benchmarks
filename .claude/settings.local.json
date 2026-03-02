@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "WebFetch(domain:thetokencompany.com)",
-      "Bash(python3:*)"
-    ]
-  }
-}

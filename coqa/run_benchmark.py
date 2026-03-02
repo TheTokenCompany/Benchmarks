@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FinanceBench benchmark runner with Bear compression."""
+"""CoQA benchmark runner with Bear compression."""
 
 import argparse
 import json
@@ -17,26 +17,72 @@ from compress import compress_text
 from evaluate import judge_answer
 
 
-def load_financebench():
-    """Load the FinanceBench dataset."""
-    ds = load_dataset(config.DATASET_NAME, split="train")
+def estimate_tokens(text: str) -> int:
+    """Estimate token count from character length."""
+    return len(text) // 4
+
+
+def load_coqa():
+    """Load the CoQA validation set."""
+    ds = load_dataset(config.DATASET_NAME, split="validation")
     return ds
 
 
-def extract_context(item) -> str:
-    """Extract oracle context from evidence pages."""
-    evidence_list = item["evidence"]
-    pages = []
-    for ev in evidence_list:
-        text = ev.get("evidence_text_full_page", "")
-        if text:
-            pages.append(text.strip())
-    return "\n\n---\n\n".join(pages)
+def flatten_conversations(dataset) -> list[dict]:
+    """Flatten conversations into individual question items.
+
+    Each conversation has a story and multiple Q&A turns. We expand each turn
+    into a separate item that includes the full prior conversation history.
+
+    Returns list of dicts with keys:
+        story_id, source, story, question, gold_answer, turn_number,
+        prior_turns (list of (question, answer) tuples)
+    """
+    items = []
+    conversations = list(dataset)
+
+    for conv_idx, conv in enumerate(conversations):
+        story = conv["story"].strip()
+        source = conv.get("source", "unknown")
+        questions = conv["questions"]
+        answers = conv["answers"]["input_text"]
+        num_turns = len(questions)
+
+        for turn_idx in range(num_turns):
+            prior_turns = [
+                (questions[t], answers[t]) for t in range(turn_idx)
+            ]
+            items.append({
+                "story_id": str(conv_idx),
+                "question_id": f"{conv_idx}_{turn_idx}",
+                "source": source,
+                "story": story,
+                "question": questions[turn_idx],
+                "gold_answer": answers[turn_idx],
+                "turn_number": turn_idx + 1,
+                "prior_turns": prior_turns,
+            })
+
+    return items
 
 
-def build_prompt(context: str, question: str) -> list[dict]:
-    """Build the chat messages for the LLM."""
-    user_content = f"Context:\n{context}\n\nQuestion: {question}"
+def build_prompt(story: str, prior_turns: list[tuple], question: str) -> list[dict]:
+    """Build the chat messages for the LLM.
+
+    Includes the story and any prior conversation turns for context.
+    """
+    parts = [f"Story:\n{story}"]
+
+    if prior_turns:
+        history = []
+        for i, (q, a) in enumerate(prior_turns, 1):
+            history.append(f"Q{i}: {q}")
+            history.append(f"A{i}: {a}")
+        parts.append("Conversation so far:\n" + "\n".join(history))
+
+    parts.append(f"Current question: {question}")
+    user_content = "\n\n".join(parts)
+
     return [
         {"role": "system", "content": config.SYSTEM_PROMPT},
         {"role": "user", "content": user_content},
@@ -84,7 +130,7 @@ def get_completed_ids(results: list[dict]) -> set:
     return {r["question_id"] for r in results if "question_id" in r}
 
 
-def run_single_config(config_name: str, dataset, limit: int | None = None):
+def run_single_config(config_name: str, items: list[dict]):
     """Run benchmark for a single configuration."""
     cfg = config.CONFIGS[config_name]
     is_compressed = cfg["compressed"]
@@ -98,15 +144,7 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
     results = load_existing_results(results_path)
     completed_ids = get_completed_ids(results)
 
-    items = list(dataset)
-    if limit is not None:
-        items = items[:limit]
-
-    remaining = []
-    for i, item in enumerate(items):
-        qid = item.get("question_id", str(i))
-        if qid not in completed_ids:
-            remaining.append((i, item))
+    remaining = [item for item in items if item["question_id"] not in completed_ids]
 
     if not remaining:
         print(f"  [{config_name}] All {len(items)} questions already completed. Skipping.")
@@ -114,59 +152,72 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
 
     print(f"  [{config_name}] {len(results)} done, {len(remaining)} remaining")
 
-    for i, item in tqdm(remaining, desc=config_name, unit="q"):
-        qid = item.get("question_id", str(i))
-        question = item["question"]
-        gold_answer = item["answer"]
-        question_type = item.get("question_type", "")
-        question_reasoning = item.get("question_reasoning", "")
+    # Cache compressed stories to avoid re-compressing the same story for each turn
+    story_cache = {}
 
-        # Extract context
-        raw_context = extract_context(item)
+    for item in tqdm(remaining, desc=config_name, unit="q"):
+        story = item["story"]
 
-        # Compress if needed
+        # Compress story if needed (cached per story_id)
         compression_info = {}
         if is_compressed:
-            try:
-                comp_result = compress_text(raw_context, aggressiveness, bear_model)
-                context_for_llm = comp_result["compressed_text"]
+            story_id = item["story_id"]
+            if story_id in story_cache:
+                story_for_llm = story_cache[story_id]["compressed_text"]
                 compression_info = {
-                    "original_tokens": comp_result["original_tokens"],
-                    "compressed_tokens": comp_result["compressed_tokens"],
-                    "compression_ratio": (
+                    "original_tokens": story_cache[story_id]["original_tokens"],
+                    "compressed_tokens": story_cache[story_id]["compressed_tokens"],
+                    "compression_ratio": story_cache[story_id]["compression_ratio"],
+                }
+            else:
+                try:
+                    comp_result = compress_text(story, aggressiveness, bear_model)
+                    story_for_llm = comp_result["compressed_text"]
+                    ratio = (
                         comp_result["compressed_tokens"] / comp_result["original_tokens"]
                         if comp_result["original_tokens"] > 0
                         else 1.0
-                    ),
-                }
-            except RuntimeError as e:
-                print(f"  Compression failed for question {qid}: {e}")
-                context_for_llm = raw_context
-                compression_info = {"error": str(e)}
+                    )
+                    compression_info = {
+                        "original_tokens": comp_result["original_tokens"],
+                        "compressed_tokens": comp_result["compressed_tokens"],
+                        "compression_ratio": ratio,
+                    }
+                    story_cache[story_id] = {
+                        "compressed_text": story_for_llm,
+                        "original_tokens": comp_result["original_tokens"],
+                        "compressed_tokens": comp_result["compressed_tokens"],
+                        "compression_ratio": ratio,
+                    }
+                except RuntimeError as e:
+                    print(f"  Compression failed for {item['question_id']}: {e}")
+                    story_for_llm = story
+                    compression_info = {"error": str(e)}
         else:
-            context_for_llm = raw_context
+            story_for_llm = story
 
         # Query LLM
-        messages = build_prompt(context_for_llm, question)
+        messages = build_prompt(story_for_llm, item["prior_turns"], item["question"])
         try:
             model_answer = query_llm(messages)
         except RuntimeError as e:
-            print(f"  LLM failed for question {qid}: {e}")
+            print(f"  LLM failed for {item['question_id']}: {e}")
             model_answer = f"ERROR: {e}"
 
         # Evaluate
         try:
-            eval_result = judge_answer(question, gold_answer, model_answer)
+            eval_result = judge_answer(item["question"], item["gold_answer"], model_answer)
         except RuntimeError as e:
-            print(f"  Judge failed for question {qid}: {e}")
+            print(f"  Judge failed for {item['question_id']}: {e}")
             eval_result = {"correct": None, "explanation": f"ERROR: {e}"}
 
         result = {
-            "question_id": qid,
-            "question": question,
-            "question_type": question_type,
-            "question_reasoning": question_reasoning,
-            "gold_answer": gold_answer,
+            "question_id": item["question_id"],
+            "story_id": item["story_id"],
+            "source": item["source"],
+            "turn_number": item["turn_number"],
+            "question": item["question"],
+            "gold_answer": item["gold_answer"],
             "model_answer": model_answer,
             "correct": eval_result["correct"],
             "judge_explanation": eval_result["explanation"],
@@ -216,35 +267,31 @@ def print_summary(config_name: str, results: list[dict]):
         else:
             print(f"  Tokens saved:     0 (no effective compression at this aggressiveness)")
 
-    # Breakdown by question_type
-    types = set(r.get("question_type") for r in evaluated)
-    types.discard("")
-    types.discard(None)
-    if types:
-        print(f"\n  By question_type:")
-        for qt in sorted(types):
-            subset = [r for r in evaluated if r.get("question_type") == qt]
-            qt_correct = sum(1 for r in subset if r["correct"])
-            qt_acc = qt_correct / len(subset) if subset else 0
-            print(f"    {qt}: {qt_correct}/{len(subset)} ({qt_acc:.1%})")
+    # Breakdown by source domain
+    sources = sorted(set(r.get("source", "unknown") for r in evaluated))
+    if len(sources) > 1:
+        print(f"\n  By source domain:")
+        for src in sources:
+            subset = [r for r in evaluated if r.get("source") == src]
+            s_correct = sum(1 for r in subset if r["correct"])
+            s_acc = s_correct / len(subset) if subset else 0
+            print(f"    {src}: {s_correct}/{len(subset)} ({s_acc:.1%})")
 
-    # Breakdown by question_reasoning
-    reasonings = set(r.get("question_reasoning") for r in evaluated)
-    reasonings.discard("")
-    reasonings.discard(None)
-    if reasonings:
-        print(f"\n  By question_reasoning:")
-        for qr in sorted(reasonings):
-            subset = [r for r in evaluated if r.get("question_reasoning") == qr]
-            qr_correct = sum(1 for r in subset if r["correct"])
-            qr_acc = qr_correct / len(subset) if subset else 0
-            print(f"    {qr}: {qr_correct}/{len(subset)} ({qr_acc:.1%})")
+    # Breakdown by turn number
+    turn_numbers = sorted(set(r.get("turn_number", 0) for r in evaluated))
+    if len(turn_numbers) > 1:
+        print(f"\n  By turn number:")
+        for tn in turn_numbers:
+            subset = [r for r in evaluated if r.get("turn_number") == tn]
+            t_correct = sum(1 for r in subset if r["correct"])
+            t_acc = t_correct / len(subset) if subset else 0
+            print(f"    turn {tn}: {t_correct}/{len(subset)} ({t_acc:.1%})")
 
     print()
 
 
 def main():
-    parser = argparse.ArgumentParser(description="FinanceBench benchmark with Bear compression")
+    parser = argparse.ArgumentParser(description="CoQA benchmark with Bear compression")
     parser.add_argument(
         "--config",
         type=str,
@@ -256,7 +303,7 @@ def main():
         "--limit",
         type=int,
         default=None,
-        help="Limit number of questions per config (for testing)",
+        help="Limit number of questions (for testing)",
     )
     args = parser.parse_args()
 
@@ -277,14 +324,32 @@ def main():
         print("Copy .env.example to .env and fill in your Bear API key.")
         return
 
-    print("Loading FinanceBench dataset...")
-    dataset = load_financebench()
-    print(f"Loaded {len(dataset)} questions\n")
+    print("Loading CoQA dataset (validation split)...")
+    dataset = load_coqa()
+    print(f"Loaded {len(dataset)} conversations")
+
+    print("Flattening conversations into individual questions...")
+    items = flatten_conversations(dataset)
+    total_questions = len(items)
+    if limit is not None:
+        items = items[:limit]
+    print(f"Expanded to {total_questions} questions total, using {len(items)}")
+
+    # Filter out questions whose uncompressed prompt exceeds the model's input token limit
+    filtered_items = []
+    for item in items:
+        messages = build_prompt(item["story"], item["prior_turns"], item["question"])
+        prompt_text = messages[0]["content"] + "\n" + messages[1]["content"]
+        if estimate_tokens(prompt_text) <= config.MAX_INPUT_TOKENS:
+            filtered_items.append(item)
+    discarded = total_questions - len(filtered_items)
+    print(f"Filtered: {len(filtered_items)} questions within {config.MAX_INPUT_TOKENS:,}-token limit, "
+          f"{discarded} discarded ({discarded}/{total_questions})\n")
 
     all_results = {}
     for cfg_name in configs_to_run:
         print(f"Running config: {cfg_name}")
-        results = run_single_config(cfg_name, dataset, limit=limit)
+        results = run_single_config(cfg_name, filtered_items)
         all_results[cfg_name] = results
         print_summary(cfg_name, results)
 

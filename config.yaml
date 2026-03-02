@@ -1,0 +1,48 @@
+
+# Shared configuration (applies to all benchmarks)
+shared:
+  openai_model: "gpt-5-mini"
+  judge_model: "gpt-5-mini"
+  max_input_tokens: 272000
+  max_retries: 2
+  retry_base_delay: 2
+
+  bear_api_url: "https://api.thetokencompany.com/v1/compress"
+  bear_models:
+    - "bear-1.2"
+    - "bear-1.1"
+
+  aggressiveness_levels: [0.05, 0.1, 0.3, 0.4, 0.5, 0.7]
+
+# Per-benchmark settings
+benchmarks:
+
+  financebench:
+    dataset_name: "PatronusAI/financebench"
+    num_questions_limit: 150
+    system_prompt: >-
+      You are a financial analyst. Answer the question based only on the
+      provided context. Be precise with numbers, currencies, and percentages.
+
+  longbench_v2:
+    dataset_name: "zai-org/LongBench-v2"
+    num_questions_limit: 150
+    system_prompt: >-
+      Answer the multiple-choice question based only on the provided context.
+      Respond with only the letter of the correct answer (A, B, C, or D).
+
+  squad_v2:
+    dataset_name: "rajpurkar/squad_v2"
+    num_questions_limit: 150
+    system_prompt: >-
+      Answer the question based only on the provided context. If the question
+      cannot be answered from the context, respond with exactly "UNANSWERABLE".
+      Keep your answer concise — extract the relevant phrase or sentence.
+
+  coqa:
+    dataset_name: "stanfordnlp/coqa"
+    num_questions_limit: 150
+    system_prompt: >-
+      Answer the question based only on the provided story and conversation
+      history. Keep your answer concise — extract the relevant phrase or
+      sentence from the story.

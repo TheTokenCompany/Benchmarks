@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FinanceBench benchmark runner with Bear compression."""
+"""SQuAD 2.0 benchmark runner with Bear compression."""
 
 import argparse
 import json
@@ -17,21 +17,32 @@ from compress import compress_text
 from evaluate import judge_answer
 
 
-def load_financebench():
-    """Load the FinanceBench dataset."""
-    ds = load_dataset(config.DATASET_NAME, split="train")
+def estimate_tokens(text: str) -> int:
+    """Estimate token count from character length."""
+    return len(text) // 4
+
+
+def load_squad_v2():
+    """Load the SQuAD 2.0 validation set."""
+    ds = load_dataset(config.DATASET_NAME, split="validation")
     return ds
 
 
 def extract_context(item) -> str:
-    """Extract oracle context from evidence pages."""
-    evidence_list = item["evidence"]
-    pages = []
-    for ev in evidence_list:
-        text = ev.get("evidence_text_full_page", "")
-        if text:
-            pages.append(text.strip())
-    return "\n\n---\n\n".join(pages)
+    """Extract context directly from the context field."""
+    return item["context"].strip()
+
+
+def get_gold_answer(item) -> tuple[str, bool]:
+    """Extract gold answer and answerability from the answers field.
+
+    Returns (answer_text, is_answerable).
+    Unanswerable questions have empty answers.text list.
+    """
+    answer_texts = item["answers"]["text"]
+    if not answer_texts:
+        return "UNANSWERABLE", False
+    return answer_texts[0], True
 
 
 def build_prompt(context: str, question: str) -> list[dict]:
@@ -84,7 +95,7 @@ def get_completed_ids(results: list[dict]) -> set:
     return {r["question_id"] for r in results if "question_id" in r}
 
 
-def run_single_config(config_name: str, dataset, limit: int | None = None):
+def run_single_config(config_name: str, items: list, limit: int | None = None):
     """Run benchmark for a single configuration."""
     cfg = config.CONFIGS[config_name]
     is_compressed = cfg["compressed"]
@@ -98,13 +109,12 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
     results = load_existing_results(results_path)
     completed_ids = get_completed_ids(results)
 
-    items = list(dataset)
     if limit is not None:
         items = items[:limit]
 
     remaining = []
     for i, item in enumerate(items):
-        qid = item.get("question_id", str(i))
+        qid = item.get("id", str(i))
         if qid not in completed_ids:
             remaining.append((i, item))
 
@@ -115,11 +125,10 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
     print(f"  [{config_name}] {len(results)} done, {len(remaining)} remaining")
 
     for i, item in tqdm(remaining, desc=config_name, unit="q"):
-        qid = item.get("question_id", str(i))
+        qid = item.get("id", str(i))
         question = item["question"]
-        gold_answer = item["answer"]
-        question_type = item.get("question_type", "")
-        question_reasoning = item.get("question_reasoning", "")
+        gold_answer, is_answerable = get_gold_answer(item)
+        title = item.get("title", "")
 
         # Extract context
         raw_context = extract_context(item)
@@ -163,9 +172,9 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
 
         result = {
             "question_id": qid,
+            "title": title,
             "question": question,
-            "question_type": question_type,
-            "question_reasoning": question_reasoning,
+            "is_answerable": is_answerable,
             "gold_answer": gold_answer,
             "model_answer": model_answer,
             "correct": eval_result["correct"],
@@ -216,35 +225,37 @@ def print_summary(config_name: str, results: list[dict]):
         else:
             print(f"  Tokens saved:     0 (no effective compression at this aggressiveness)")
 
-    # Breakdown by question_type
-    types = set(r.get("question_type") for r in evaluated)
-    types.discard("")
-    types.discard(None)
-    if types:
-        print(f"\n  By question_type:")
-        for qt in sorted(types):
-            subset = [r for r in evaluated if r.get("question_type") == qt]
-            qt_correct = sum(1 for r in subset if r["correct"])
-            qt_acc = qt_correct / len(subset) if subset else 0
-            print(f"    {qt}: {qt_correct}/{len(subset)} ({qt_acc:.1%})")
+    # Breakdown by answerability
+    answerable = [r for r in evaluated if r.get("is_answerable")]
+    unanswerable = [r for r in evaluated if not r.get("is_answerable")]
+    if answerable and unanswerable:
+        ans_correct = sum(1 for r in answerable if r["correct"])
+        ans_acc = ans_correct / len(answerable) if answerable else 0
+        unans_correct = sum(1 for r in unanswerable if r["correct"])
+        unans_acc = unans_correct / len(unanswerable) if unanswerable else 0
+        print(f"\n  By answerability:")
+        print(f"    answerable:   {ans_correct}/{len(answerable)} ({ans_acc:.1%})")
+        print(f"    unanswerable: {unans_correct}/{len(unanswerable)} ({unans_acc:.1%})")
 
-    # Breakdown by question_reasoning
-    reasonings = set(r.get("question_reasoning") for r in evaluated)
-    reasonings.discard("")
-    reasonings.discard(None)
-    if reasonings:
-        print(f"\n  By question_reasoning:")
-        for qr in sorted(reasonings):
-            subset = [r for r in evaluated if r.get("question_reasoning") == qr]
-            qr_correct = sum(1 for r in subset if r["correct"])
-            qr_acc = qr_correct / len(subset) if subset else 0
-            print(f"    {qr}: {qr_correct}/{len(subset)} ({qr_acc:.1%})")
+    # Breakdown by title (article)
+    titles = set(r.get("title") for r in evaluated)
+    titles.discard("")
+    titles.discard(None)
+    if titles and len(titles) <= 50:
+        print(f"\n  By article ({len(titles)} articles):")
+        for t in sorted(titles):
+            subset = [r for r in evaluated if r.get("title") == t]
+            t_correct = sum(1 for r in subset if r["correct"])
+            t_acc = t_correct / len(subset) if subset else 0
+            print(f"    {t}: {t_correct}/{len(subset)} ({t_acc:.1%})")
+    elif titles:
+        print(f"\n  {len(titles)} distinct articles (too many to list)")
 
     print()
 
 
 def main():
-    parser = argparse.ArgumentParser(description="FinanceBench benchmark with Bear compression")
+    parser = argparse.ArgumentParser(description="SQuAD 2.0 benchmark with Bear compression")
     parser.add_argument(
         "--config",
         type=str,
@@ -277,14 +288,29 @@ def main():
         print("Copy .env.example to .env and fill in your Bear API key.")
         return
 
-    print("Loading FinanceBench dataset...")
-    dataset = load_financebench()
-    print(f"Loaded {len(dataset)} questions\n")
+    print("Loading SQuAD 2.0 dataset (validation split)...")
+    dataset = load_squad_v2()
+    total_loaded = len(dataset)
+    print(f"Loaded {total_loaded} questions")
+
+    # Filter out questions whose uncompressed prompt exceeds the model's input token limit
+    items = list(dataset)
+    if limit is not None:
+        items = items[:limit]
+    filtered_items = []
+    for item in items:
+        context = extract_context(item)
+        prompt_text = config.SYSTEM_PROMPT + "\n" + f"Context:\n{context}\n\nQuestion: {item['question']}"
+        if estimate_tokens(prompt_text) <= config.MAX_INPUT_TOKENS:
+            filtered_items.append(item)
+    discarded = len(items) - len(filtered_items)
+    print(f"Filtered: {len(filtered_items)} questions within {config.MAX_INPUT_TOKENS:,}-token limit, "
+          f"{discarded} discarded ({discarded}/{len(items)})\n")
 
     all_results = {}
     for cfg_name in configs_to_run:
         print(f"Running config: {cfg_name}")
-        results = run_single_config(cfg_name, dataset, limit=limit)
+        results = run_single_config(cfg_name, filtered_items, limit=None)
         all_results[cfg_name] = results
         print_summary(cfg_name, results)
 

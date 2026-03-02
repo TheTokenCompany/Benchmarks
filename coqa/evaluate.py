@@ -13,15 +13,16 @@ def _get_client():
 
 
 JUDGE_SYSTEM_PROMPT = """\
-You are an evaluation judge. Compare a model's answer to the gold (correct) answer for a financial question.
+You are an evaluation judge. Compare a model's answer to the gold (correct) answer for a conversational reading comprehension question.
 
 Rules:
-- Numbers that are equivalent should be treated as correct (e.g., "3.5 billion" == "$3,500,000,000" == "$3.5B").
-- Percentages: "15%" == "15 percent" == "0.15" (when context makes the meaning clear).
-- Minor rounding differences are acceptable (e.g., "$3.47B" vs "$3.5B" is acceptable if within 2%).
-- The model answer must convey the same key facts as the gold answer.
-- Extra detail in the model answer is fine as long as the core answer is correct.
-- If the gold answer is a specific number/fact, the model answer must include that number/fact.
+- The model answer must convey the same information as the gold answer.
+- Minor phrasing differences are acceptable (e.g., "the 19th century" == "19th century").
+- Extra context or detail in the model answer is fine as long as the core answer is correct.
+- The gold answer may be very short (a single word or phrase). The model answer is correct if it contains that key information.
+- Synonyms and equivalent expressions are acceptable (e.g., "started" == "began").
+- Yes/no answers must match (e.g., gold "yes" matches model "Yes, it was" but not "No").
+- The question may reference prior conversation turns — focus only on whether the answer content matches.
 
 Respond with ONLY "CORRECT" or "INCORRECT" followed by a brief explanation."""
 
