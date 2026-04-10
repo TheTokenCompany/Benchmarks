@@ -4,3 +4,4 @@ requests
 python-dotenv
 tqdm
 pyyaml
+httpx>=0.27
