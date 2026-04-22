@@ -41,7 +41,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 TTC_API_KEY = os.getenv("TTC_API_KEY", "")
-TTC_BASE_URL = os.getenv("TTC_BASE_URL", "https://api.thetokencompany.com:8443/v1")
+TTC_BASE_URL = os.getenv("TTC_BASE_URL", "")
 
 INPUTS_FILE = HERE / "inputs.json"
 RESULTS_FILE = HERE / "results.json"
@@ -56,13 +56,6 @@ MODELS: list[dict] = [
         "ttc_id": "openai/gpt-5.4",
     },
     {
-        "label": "gpt-5-mini",
-        "vendor": "openai",
-        "openai_id": "gpt-5-mini",
-        "openrouter_id": "openai/gpt-5-mini",
-        "ttc_id": "openai/gpt-5-mini",
-    },
-    {
         "label": "claude-sonnet-4.6",
         "vendor": "anthropic",
         "anthropic_id": "claude-sonnet-4-6",
@@ -70,11 +63,10 @@ MODELS: list[dict] = [
         "ttc_id": "anthropic/claude-sonnet-4.6",
     },
     {
-        "label": "claude-opus-4.6",
-        "vendor": "anthropic",
-        "anthropic_id": "claude-opus-4-6",
-        "openrouter_id": "anthropic/claude-opus-4.6",
-        "ttc_id": "anthropic/claude-opus-4.6",
+        "label": "gemini-3.1-flash-lite",
+        "vendor": "google",
+        "openrouter_id": "google/gemini-3.1-flash-lite-preview",
+        "ttc_id": "google/gemini-3.1-flash-lite-preview",
     },
 ]
 
@@ -83,9 +75,9 @@ MODELS: list[dict] = [
 PROVIDERS: list[dict] = [
     {"key": "native",     "kind": "native",     "label": "Native API"},
     {"key": "openrouter", "kind": "openrouter", "label": "OpenRouter"},
-    {"key": "ttc_none",   "kind": "ttc",        "label": "TTC (no compression)",   "aggressiveness": 0.0},
-    {"key": "ttc_01",     "kind": "ttc",        "label": "TTC (aggressiveness=0.1)", "aggressiveness": 0.1},
-    {"key": "ttc_05",     "kind": "ttc",        "label": "TTC (aggressiveness=0.5)", "aggressiveness": 0.5},
+    {"key": "ttc_none",   "kind": "ttc",        "label": "TTC (compression=none)", "compression": "none"},
+    {"key": "ttc_low",    "kind": "ttc",        "label": "TTC (compression=low)",  "compression": "low"},
+    {"key": "ttc_high",   "kind": "ttc",        "label": "TTC (compression=high)", "compression": "high"},
 ]
 
 # Input size targets (approximate input token counts).
@@ -364,14 +356,13 @@ async def run_one(provider: dict, model: dict, messages: list[dict]) -> RunMetri
     elif kind == "ttc":
         if not TTC_API_KEY:
             return RunMetrics(success=False, error="TTC_API_KEY not set")
-        agg = provider.get("aggressiveness", 0.0)
-        model_field = model["ttc_id"]
-        if agg > 0.0:
-            model_field = f"{model_field}?aggressiveness={agg}"
+        compression = provider.get("compression", "none")
+        model_field = f"{model['ttc_id']}?compression={compression}"
+        tok_key_ttc = _tokens_param(vendor)
         body = {
             "model": model_field,
             "messages": messages,
-            tok_key: MAX_OUTPUT_TOKENS,
+            tok_key_ttc: MAX_OUTPUT_TOKENS,
             "stream": True,
         }
         if vendor == "openai":
@@ -470,13 +461,16 @@ async def generate_inputs() -> dict[str, str]:
 
 
 def build_messages(input_text: str) -> list[dict]:
-    """Build a standard chat messages list with the given input content."""
+    """Build a standard chat messages list with the given input content.
+    Appends a random cache-busting string to prevent upstream caching."""
+    import uuid
+    nonce = uuid.uuid4().hex[:8]
     return [
         {
             "role": "user",
             "content": (
                 "Summarize the following text in one short sentence (max 20 words). "
-                "Reply with just the sentence, nothing else.\n\n"
+                f"Reply with just the sentence, nothing else. [nonce:{nonce}]\n\n"
                 f"{input_text}"
             ),
         }
@@ -501,6 +495,17 @@ async def main(runs: int, only_provider: Optional[str], only_model: Optional[str
         for provider in PROVIDERS:
             if only_provider and provider["key"] != only_provider:
                 continue
+            # Skip combos where the provider can't handle this model
+            if provider["kind"] == "native" and model["vendor"] == "openai" and not OPENAI_API_KEY:
+                continue
+            if provider["kind"] == "native" and model["vendor"] == "anthropic" and not ANTHROPIC_API_KEY:
+                continue
+            if provider["kind"] == "native" and model["vendor"] == "google":
+                continue  # no native Google API support
+            if provider["kind"] == "openrouter" and not OPENROUTER_API_KEY:
+                continue
+            if provider["kind"] == "ttc" and not TTC_API_KEY:
+                continue
             for size, target_tokens in INPUT_SIZES.items():
                 if only_size and size != only_size:
                     continue
@@ -516,29 +521,22 @@ async def main(runs: int, only_provider: Optional[str], only_model: Optional[str
     print(f"Running {len(combos)} combos × {runs} runs = {len(combos) * runs} requests")
     print("=" * 80)
 
-    # Run each combo sequentially (to avoid network contention affecting timing)
     model_by_label = {m["label"]: m for m in MODELS}
     provider_by_key = {p["key"]: p for p in PROVIDERS}
 
-    import asyncio as _asyncio
-
+    # Run all combos fully sequentially — one request at a time for fair latency measurement
     for i, combo in enumerate(combos, 1):
         model = model_by_label[combo.model]
         provider = provider_by_key[combo.provider]
-        messages = build_messages(inputs[combo.input_size])
-        print(f"\n[{i}/{len(combos)}] {combo.model} | {provider['label']} | {combo.input_size} ({combo.input_tokens} tokens)", flush=True)
-
-        # Run the N runs in parallel (they're independent) to speed up the benchmark
-        results = await _asyncio.gather(
-            *[run_one(provider, model, messages) for _ in range(runs)],
-            return_exceptions=False,
-        )
-        for r, m in enumerate(results):
+        print(f"\n[{i}/{len(combos)}] {combo.model} | {provider['label']} | {combo.input_size} ({combo.input_tokens} tok)", flush=True)
+        for r in range(runs):
+            messages = build_messages(inputs[combo.input_size])
+            m = await run_one(provider, model, messages)
             combo.runs.append(m)
             if m.success:
-                print(f"  run {r+1}: ttft={m.time_to_first_token_ms:.0f}ms total={m.total_time_ms:.0f}ms chars={m.content_chars}", flush=True)
+                print(f"  run {r+1}/{runs}: ttft={m.time_to_first_token_ms:.0f}ms total={m.total_time_ms:.0f}ms chars={m.content_chars}", flush=True)
             else:
-                print(f"  run {r+1}: FAIL — {m.error}", flush=True)
+                print(f"  run {r+1}/{runs}: FAIL — {m.error}", flush=True)
 
     # Save full results + summary
     raw = [

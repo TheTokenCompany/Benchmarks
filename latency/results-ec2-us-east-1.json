@@ -1,0 +1,2499 @@
+{
+  "summaries": [
+    {
+      "model": "gpt-5-mini",
+      "provider": "native",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1705.1,
+      "ttft_ms_avg": 1705.2,
+      "ttft_ms_med": 1929.9,
+      "total_ms_avg": 2151.5,
+      "chars_per_sec_avg": 530.4,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "native",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1160.8,
+      "ttft_ms_avg": 1173.2,
+      "ttft_ms_med": 1159.9,
+      "total_ms_avg": 1271.8,
+      "chars_per_sec_avg": 1874.6,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "native",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 918.1,
+      "ttft_ms_avg": 1076.9,
+      "ttft_ms_med": 1234.4,
+      "total_ms_avg": 1244.3,
+      "chars_per_sec_avg": 1168.5,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openrouter",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 585.9,
+      "ttft_ms_avg": 1004.2,
+      "ttft_ms_med": 977.0,
+      "total_ms_avg": 2165.2,
+      "chars_per_sec_avg": 231.7,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openrouter",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 491.3,
+      "ttft_ms_avg": 1914.2,
+      "ttft_ms_med": 1442.4,
+      "total_ms_avg": 2162.9,
+      "chars_per_sec_avg": 749.7,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openrouter",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1006.8,
+      "ttft_ms_avg": 1763.9,
+      "ttft_ms_med": 1438.3,
+      "total_ms_avg": 1911.4,
+      "chars_per_sec_avg": 1105.2,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_none",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 6706.0,
+      "ttft_ms_avg": 6707.3,
+      "ttft_ms_med": 6448.2,
+      "total_ms_avg": 7032.4,
+      "chars_per_sec_avg": 405.8,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_none",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 10409.3,
+      "ttft_ms_avg": 10409.5,
+      "ttft_ms_med": 9259.0,
+      "total_ms_avg": 10587.0,
+      "chars_per_sec_avg": 899.4,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_none",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 8924.8,
+      "ttft_ms_avg": 8930.7,
+      "ttft_ms_med": 5466.4,
+      "total_ms_avg": 9021.5,
+      "chars_per_sec_avg": 2034.2,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_low",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 7688.1,
+      "ttft_ms_avg": 7688.2,
+      "ttft_ms_med": 5925.3,
+      "total_ms_avg": 8011.2,
+      "chars_per_sec_avg": 399.8,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_low",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 6682.9,
+      "ttft_ms_avg": 6683.0,
+      "ttft_ms_med": 5330.5,
+      "total_ms_avg": 6816.5,
+      "chars_per_sec_avg": 1422.1,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_low",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 5277.7,
+      "ttft_ms_avg": 5279.0,
+      "ttft_ms_med": 4498.2,
+      "total_ms_avg": 5387.9,
+      "chars_per_sec_avg": 1830.4,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_high",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 6881.7,
+      "ttft_ms_avg": 6881.7,
+      "ttft_ms_med": 6800.5,
+      "total_ms_avg": 7300.8,
+      "chars_per_sec_avg": 328.8,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_high",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 8378.0,
+      "ttft_ms_avg": 8381.3,
+      "ttft_ms_med": 8437.9,
+      "total_ms_avg": 8513.6,
+      "chars_per_sec_avg": 1554.5,
+      "errors": []
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_high",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 4935.6,
+      "ttft_ms_avg": 4936.5,
+      "ttft_ms_med": 4502.5,
+      "total_ms_avg": 5041.7,
+      "chars_per_sec_avg": 1881.6,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "native",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 0,
+      "runs_failed": 3,
+      "ttfb_ms_avg": null,
+      "ttft_ms_avg": null,
+      "ttft_ms_med": null,
+      "total_ms_avg": null,
+      "chars_per_sec_avg": null,
+      "errors": [
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxGZciCghEtENuTeWe\"}",
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxHG3TcmzoCkgg9JJX\"}",
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxHmJZFFWgbUikZdtu\"}"
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "native",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 0,
+      "runs_failed": 3,
+      "ttfb_ms_avg": null,
+      "ttft_ms_avg": null,
+      "ttft_ms_med": null,
+      "total_ms_avg": null,
+      "chars_per_sec_avg": null,
+      "errors": [
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxJ5QMcELi6BEydLFX\"}",
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxKDcaswFHH3CDWtyz\"}",
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxLHcHHFwytpqKHcfB\"}"
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "native",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 0,
+      "runs_failed": 3,
+      "ttfb_ms_avg": null,
+      "ttft_ms_avg": null,
+      "ttft_ms_med": null,
+      "total_ms_avg": null,
+      "chars_per_sec_avg": null,
+      "errors": [
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxLgfUW4CVGPun7Tdc\"}",
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxMvanPnPQyPtW5Lzy\"}",
+        "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxNXJ1feAUQki71kWW\"}"
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "openrouter",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 3287.1,
+      "ttft_ms_avg": 3312.9,
+      "ttft_ms_med": 1946.9,
+      "total_ms_avg": 3762.7,
+      "chars_per_sec_avg": 299.3,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "openrouter",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 4643.2,
+      "ttft_ms_avg": 5871.7,
+      "ttft_ms_med": 2400.3,
+      "total_ms_avg": 6960.1,
+      "chars_per_sec_avg": 157.8,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "openrouter",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 969.6,
+      "ttft_ms_avg": 984.0,
+      "ttft_ms_med": 697.2,
+      "total_ms_avg": 1953.8,
+      "chars_per_sec_avg": 160.4,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_none",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1210.5,
+      "ttft_ms_avg": 1210.6,
+      "ttft_ms_med": 1256.4,
+      "total_ms_avg": 2023.3,
+      "chars_per_sec_avg": 153.7,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_none",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1287.7,
+      "ttft_ms_avg": 1287.7,
+      "ttft_ms_med": 1262.7,
+      "total_ms_avg": 2351.5,
+      "chars_per_sec_avg": 165.4,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_none",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1929.4,
+      "ttft_ms_avg": 1929.4,
+      "ttft_ms_med": 1605.5,
+      "total_ms_avg": 2839.3,
+      "chars_per_sec_avg": 180.6,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_low",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 2664.3,
+      "ttft_ms_avg": 2667.0,
+      "ttft_ms_med": 1293.8,
+      "total_ms_avg": 3344.1,
+      "chars_per_sec_avg": 169.7,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_low",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1770.2,
+      "ttft_ms_avg": 1770.2,
+      "ttft_ms_med": 1398.2,
+      "total_ms_avg": 2742.7,
+      "chars_per_sec_avg": 179.3,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_low",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1512.9,
+      "ttft_ms_avg": 1513.0,
+      "ttft_ms_med": 1473.9,
+      "total_ms_avg": 2403.6,
+      "chars_per_sec_avg": 181.5,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_high",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1238.4,
+      "ttft_ms_avg": 1238.5,
+      "ttft_ms_med": 1243.9,
+      "total_ms_avg": 1901.2,
+      "chars_per_sec_avg": 176.6,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_high",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1347.3,
+      "ttft_ms_avg": 1347.4,
+      "ttft_ms_med": 1350.5,
+      "total_ms_avg": 2410.8,
+      "chars_per_sec_avg": 162.9,
+      "errors": []
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_high",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1751.9,
+      "ttft_ms_avg": 1752.0,
+      "ttft_ms_med": 1570.4,
+      "total_ms_avg": 2569.2,
+      "chars_per_sec_avg": 198.8,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "native",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 0,
+      "runs_failed": 3,
+      "ttfb_ms_avg": null,
+      "ttft_ms_avg": null,
+      "ttft_ms_med": null,
+      "total_ms_avg": null,
+      "chars_per_sec_avg": null,
+      "errors": [
+        "unknown provider kind: native"
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "native",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 0,
+      "runs_failed": 3,
+      "ttfb_ms_avg": null,
+      "ttft_ms_avg": null,
+      "ttft_ms_med": null,
+      "total_ms_avg": null,
+      "chars_per_sec_avg": null,
+      "errors": [
+        "unknown provider kind: native"
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "native",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 0,
+      "runs_failed": 3,
+      "ttfb_ms_avg": null,
+      "ttft_ms_avg": null,
+      "ttft_ms_med": null,
+      "total_ms_avg": null,
+      "chars_per_sec_avg": null,
+      "errors": [
+        "unknown provider kind: native"
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "openrouter",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 867.0,
+      "ttft_ms_avg": 876.4,
+      "ttft_ms_med": 951.4,
+      "total_ms_avg": 953.3,
+      "chars_per_sec_avg": 1801.3,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "openrouter",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 805.1,
+      "ttft_ms_avg": 806.0,
+      "ttft_ms_med": 795.7,
+      "total_ms_avg": 932.0,
+      "chars_per_sec_avg": 1348.7,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "openrouter",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 849.9,
+      "ttft_ms_avg": 859.3,
+      "ttft_ms_med": 853.0,
+      "total_ms_avg": 1031.4,
+      "chars_per_sec_avg": 994.7,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_none",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1164.5,
+      "ttft_ms_avg": 1164.5,
+      "ttft_ms_med": 1149.5,
+      "total_ms_avg": 1232.1,
+      "chars_per_sec_avg": 1694.5,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_none",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1312.6,
+      "ttft_ms_avg": 1312.6,
+      "ttft_ms_med": 1323.7,
+      "total_ms_avg": 1392.4,
+      "chars_per_sec_avg": 1997.3,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_none",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1294.4,
+      "ttft_ms_avg": 1294.4,
+      "ttft_ms_med": 1242.3,
+      "total_ms_avg": 1508.1,
+      "chars_per_sec_avg": 748.5,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_low",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1424.0,
+      "ttft_ms_avg": 1424.0,
+      "ttft_ms_med": 1434.7,
+      "total_ms_avg": 1493.4,
+      "chars_per_sec_avg": 2006.2,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_low",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1347.6,
+      "ttft_ms_avg": 1347.6,
+      "ttft_ms_med": 1314.7,
+      "total_ms_avg": 1486.9,
+      "chars_per_sec_avg": 1233.4,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_low",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1333.2,
+      "ttft_ms_avg": 1333.2,
+      "ttft_ms_med": 1387.0,
+      "total_ms_avg": 1549.9,
+      "chars_per_sec_avg": 700.1,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_high",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1163.6,
+      "ttft_ms_avg": 1163.6,
+      "ttft_ms_med": 1186.9,
+      "total_ms_avg": 1252.5,
+      "chars_per_sec_avg": 1407.9,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_high",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1501.1,
+      "ttft_ms_avg": 1501.1,
+      "ttft_ms_med": 1501.5,
+      "total_ms_avg": 1594.2,
+      "chars_per_sec_avg": 2258.3,
+      "errors": []
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_high",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs_ok": 3,
+      "runs_failed": 0,
+      "ttfb_ms_avg": 1300.4,
+      "ttft_ms_avg": 1300.4,
+      "ttft_ms_med": 1235.0,
+      "total_ms_avg": 1425.8,
+      "chars_per_sec_avg": 1222.0,
+      "errors": []
+    }
+  ],
+  "raw": [
+    {
+      "model": "gpt-5-mini",
+      "provider": "native",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1202.1489080000124,
+          "time_to_first_token_ms": 1202.3593660000101,
+          "total_time_ms": 1614.7214320000103,
+          "chunks_received": 51,
+          "content_chars": 204,
+          "chars_per_sec": 494.7108786674862
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1929.8578930000049,
+          "time_to_first_token_ms": 1929.8874960000062,
+          "total_time_ms": 2360.8342760000055,
+          "chunks_received": 55,
+          "content_chars": 250,
+          "chars_per_sec": 580.1180368490058
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1983.1459130000012,
+          "time_to_first_token_ms": 1983.2747070000069,
+          "total_time_ms": 2479.0033690000114,
+          "chunks_received": 58,
+          "content_chars": 256,
+          "chars_per_sec": 516.4115364384512
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "native",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1203.132237999995,
+          "time_to_first_token_ms": 1218.1546829999945,
+          "total_time_ms": 1302.5021879999913,
+          "chunks_received": 36,
+          "content_chars": 174,
+          "chars_per_sec": 2062.8944507606557
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1137.788092000008,
+          "time_to_first_token_ms": 1159.8945920000006,
+          "total_time_ms": 1239.8460220000088,
+          "chunks_received": 37,
+          "content_chars": 182,
+          "chars_per_sec": 2276.3820484509306
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1141.6025109999878,
+          "time_to_first_token_ms": 1141.6261249999877,
+          "total_time_ms": 1273.182614999996,
+          "chunks_received": 37,
+          "content_chars": 169,
+          "chars_per_sec": 1284.619253675659
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "native",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1058.628878999997,
+          "time_to_first_token_ms": 1234.3955199999925,
+          "total_time_ms": 1427.7508379999945,
+          "chunks_received": 32,
+          "content_chars": 177,
+          "chars_per_sec": 915.4131462781811
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 739.8567230000026,
+          "time_to_first_token_ms": 739.8784460000059,
+          "total_time_ms": 962.2642329999991,
+          "chunks_received": 30,
+          "content_chars": 156,
+          "chars_per_sec": 701.4836789007777
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 955.6726940000004,
+          "time_to_first_token_ms": 1256.4901020000007,
+          "total_time_ms": 1342.802656999993,
+          "chunks_received": 29,
+          "content_chars": 163,
+          "chars_per_sec": 1888.485400530834
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openrouter",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 675.0838709999982,
+          "time_to_first_token_ms": 976.9849829999941,
+          "total_time_ms": 3241.127917,
+          "chunks_received": 53,
+          "content_chars": 210,
+          "chars_per_sec": 92.75032810273959
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 593.2692389999943,
+          "time_to_first_token_ms": 1214.602837000001,
+          "total_time_ms": 1878.4076069999996,
+          "chunks_received": 38,
+          "content_chars": 139,
+          "chars_per_sec": 209.39891709425393
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 489.45915599999523,
+          "time_to_first_token_ms": 821.078545000006,
+          "total_time_ms": 1375.9429549999993,
+          "chunks_received": 52,
+          "content_chars": 218,
+          "chars_per_sec": 392.88877799893964
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openrouter",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 509.5941759999931,
+          "time_to_first_token_ms": 967.1205819999926,
+          "total_time_ms": 1193.4072359999986,
+          "chunks_received": 36,
+          "content_chars": 171,
+          "chars_per_sec": 755.6786800161685
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 486.0493129999952,
+          "time_to_first_token_ms": 3332.988269999987,
+          "total_time_ms": 3662.7226839999876,
+          "chunks_received": 35,
+          "content_chars": 170,
+          "chars_per_sec": 515.5664461520226
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 478.1616219999876,
+          "time_to_first_token_ms": 1442.410896999988,
+          "total_time_ms": 1632.65015799999,
+          "chunks_received": 36,
+          "content_chars": 186,
+          "chars_per_sec": 977.7161613343213
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openrouter",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 489.7651599999904,
+          "time_to_first_token_ms": 1217.4294059999938,
+          "total_time_ms": 1346.8778259999965,
+          "chunks_received": 29,
+          "content_chars": 152,
+          "chars_per_sec": 1174.2128640890082
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 2011.160564000008,
+          "time_to_first_token_ms": 2635.979308000003,
+          "total_time_ms": 2804.7409180000072,
+          "chunks_received": 31,
+          "content_chars": 185,
+          "chars_per_sec": 1096.22087629998
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 519.4280979999917,
+          "time_to_first_token_ms": 1438.258973999993,
+          "total_time_ms": 1582.727855999991,
+          "chunks_received": 30,
+          "content_chars": 151,
+          "chars_per_sec": 1045.2077839157225
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_none",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 6447.437007999994,
+          "time_to_first_token_ms": 6448.219578000007,
+          "total_time_ms": 6700.6492219999955,
+          "chunks_received": 32,
+          "content_chars": 125,
+          "chars_per_sec": 495.187482814045
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5085.620053,
+          "time_to_first_token_ms": 5088.366750000006,
+          "total_time_ms": 5439.899560000001,
+          "chunks_received": 36,
+          "content_chars": 129,
+          "chars_per_sec": 366.9643240413371
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 8585.015937999999,
+          "time_to_first_token_ms": 8585.221942000004,
+          "total_time_ms": 8956.656609000007,
+          "chunks_received": 36,
+          "content_chars": 132,
+          "chars_per_sec": 355.37878320872744
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_none",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 7505.60757400001,
+          "time_to_first_token_ms": 7505.890801000007,
+          "total_time_ms": 7626.374246000012,
+          "chunks_received": 23,
+          "content_chars": 137,
+          "chars_per_sec": 1137.0856801114373
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 14463.396683999988,
+          "time_to_first_token_ms": 14463.53427599999,
+          "total_time_ms": 14704.445200999999,
+          "chunks_received": 25,
+          "content_chars": 155,
+          "chars_per_sec": 643.3913281433545
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 9258.817145000008,
+          "time_to_first_token_ms": 9258.999239000004,
+          "total_time_ms": 9430.078523999995,
+          "chunks_received": 28,
+          "content_chars": 157,
+          "chars_per_sec": 917.703157340227
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_none",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5444.511306999999,
+          "time_to_first_token_ms": 5452.081629999981,
+          "total_time_ms": 5517.807137999995,
+          "chunks_received": 30,
+          "content_chars": 168,
+          "chars_per_sec": 2556.0852264536925
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5456.140395000006,
+          "time_to_first_token_ms": 5466.373945000015,
+          "total_time_ms": 5539.347051000022,
+          "chunks_received": 29,
+          "content_chars": 172,
+          "chars_per_sec": 2357.0327402534313
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 15873.666407000002,
+          "time_to_first_token_ms": 15873.70377000002,
+          "total_time_ms": 16007.378684000003,
+          "chunks_received": 30,
+          "content_chars": 159,
+          "chars_per_sec": 1189.4527944115255
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_low",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5925.175819999993,
+          "time_to_first_token_ms": 5925.323334000012,
+          "total_time_ms": 6195.845230999993,
+          "chunks_received": 33,
+          "content_chars": 123,
+          "chars_per_sec": 454.67668741066404
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 12531.030267000006,
+          "time_to_first_token_ms": 12531.097274000018,
+          "total_time_ms": 12808.39764000001,
+          "chunks_received": 34,
+          "content_chars": 117,
+          "chars_per_sec": 421.9251553386096
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 4608.058820999986,
+          "time_to_first_token_ms": 4608.197983999986,
+          "total_time_ms": 5029.335994000007,
+          "chunks_received": 36,
+          "content_chars": 136,
+          "chars_per_sec": 322.9345173568946
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_low",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 4830.687066000024,
+          "time_to_first_token_ms": 4830.724873000008,
+          "total_time_ms": 4925.266222000005,
+          "chunks_received": 29,
+          "content_chars": 146,
+          "chars_per_sec": 1544.2978288791446
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5330.331685000005,
+          "time_to_first_token_ms": 5330.516584000008,
+          "total_time_ms": 5402.214278999992,
+          "chunks_received": 27,
+          "content_chars": 145,
+          "chars_per_sec": 2022.3802173840238
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 9887.668940000025,
+          "time_to_first_token_ms": 9887.69640800001,
+          "total_time_ms": 10122.08529900002,
+          "chunks_received": 33,
+          "content_chars": 164,
+          "chars_per_sec": 699.6918638093358
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_low",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 4495.0029909999785,
+          "time_to_first_token_ms": 4498.156465999983,
+          "total_time_ms": 4565.036699999979,
+          "chunks_received": 28,
+          "content_chars": 164,
+          "chars_per_sec": 2452.144530475337
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 7221.702470999986,
+          "time_to_first_token_ms": 7222.419917999986,
+          "total_time_ms": 7281.234598999987,
+          "chunks_received": 25,
+          "content_chars": 134,
+          "chars_per_sec": 2278.3427151462115
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 4116.252078000002,
+          "time_to_first_token_ms": 4116.3879890000035,
+          "total_time_ms": 4317.528417000005,
+          "chunks_received": 28,
+          "content_chars": 153,
+          "chars_per_sec": 760.6625953883266
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_high",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 7988.120352999999,
+          "time_to_first_token_ms": 7988.146462000003,
+          "total_time_ms": 8510.60535900001,
+          "chunks_received": 34,
+          "content_chars": 128,
+          "chars_per_sec": 244.99534936620734
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 6800.450154999993,
+          "time_to_first_token_ms": 6800.478147000007,
+          "total_time_ms": 7229.02000900001,
+          "chunks_received": 38,
+          "content_chars": 147,
+          "chars_per_sec": 343.02366474526366
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5856.595521000003,
+          "time_to_first_token_ms": 5856.623726000009,
+          "total_time_ms": 6162.912073999991,
+          "chunks_received": 36,
+          "content_chars": 122,
+          "chars_per_sec": 398.3174704380437
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_high",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 8437.835533999987,
+          "time_to_first_token_ms": 8437.865058999989,
+          "total_time_ms": 8520.931054999977,
+          "chunks_received": 29,
+          "content_chars": 146,
+          "chars_per_sec": 1757.6385889602807
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 7097.520228999969,
+          "time_to_first_token_ms": 7097.552299,
+          "total_time_ms": 7340.962995000013,
+          "chunks_received": 27,
+          "content_chars": 147,
+          "chars_per_sec": 603.9175862674184
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 9598.608941999999,
+          "time_to_first_token_ms": 9608.57854599999,
+          "total_time_ms": 9678.952229999994,
+          "chunks_received": 25,
+          "content_chars": 162,
+          "chars_per_sec": 2301.9968657600944
+        }
+      ]
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "ttc_high",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 4502.408009999954,
+          "time_to_first_token_ms": 4502.534705999949,
+          "total_time_ms": 4650.971385999981,
+          "chunks_received": 30,
+          "content_chars": 160,
+          "chars_per_sec": 1077.9006913922212
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 4472.477682000033,
+          "time_to_first_token_ms": 4475.218296000037,
+          "total_time_ms": 4532.7467790000355,
+          "chunks_received": 28,
+          "content_chars": 166,
+          "chars_per_sec": 2885.5271570433224
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5831.852854000033,
+          "time_to_first_token_ms": 5831.8808980000085,
+          "total_time_ms": 5941.310491000024,
+          "chunks_received": 30,
+          "content_chars": 184,
+          "chars_per_sec": 1681.44644383329
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "native",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxGZciCghEtENuTeWe\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxHG3TcmzoCkgg9JJX\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxHmJZFFWgbUikZdtu\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "native",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxJ5QMcELi6BEydLFX\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxKDcaswFHH3CDWtyz\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxLHcHHFwytpqKHcfB\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "native",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxLgfUW4CVGPun7Tdc\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxMvanPnPQyPtW5Lzy\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "HTTP 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_id\":\"req_011CaJmxNXJ1feAUQki71kWW\"}",
+          "status_code": 400,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "openrouter",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1918.8423220000032,
+          "time_to_first_token_ms": 1946.859662999998,
+          "total_time_ms": 2403.4912970000023,
+          "chunks_received": 9,
+          "content_chars": 108,
+          "chars_per_sec": 236.5144943068026
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1105.1609350000008,
+          "time_to_first_token_ms": 1116.1987290000043,
+          "total_time_ms": 1763.0140659999965,
+          "chunks_received": 13,
+          "content_chars": 115,
+          "chars_per_sec": 177.79417620705146
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 6837.1624020000045,
+          "time_to_first_token_ms": 6875.624094999992,
+          "total_time_ms": 7121.6996819999995,
+          "chunks_received": 13,
+          "content_chars": 119,
+          "chars_per_sec": 483.5912471073222
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "openrouter",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 2388.712511999998,
+          "time_to_first_token_ms": 2400.3027579999953,
+          "total_time_ms": 3703.4521169999975,
+          "chunks_received": 21,
+          "content_chars": 165,
+          "chars_per_sec": 126.61633822742779
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1465.1993949999992,
+          "time_to_first_token_ms": 1486.0855710000037,
+          "total_time_ms": 2296.3090650000026,
+          "chunks_received": 18,
+          "content_chars": 165,
+          "chars_per_sec": 203.64751358345603
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 10075.564161000017,
+          "time_to_first_token_ms": 13728.730105000011,
+          "total_time_ms": 14880.492383000017,
+          "chunks_received": 22,
+          "content_chars": 165,
+          "chars_per_sec": 143.25872895100946
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "openrouter",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 573.0963929999859,
+          "time_to_first_token_ms": 599.0347689999851,
+          "total_time_ms": 1668.8336539999966,
+          "chunks_received": 19,
+          "content_chars": 171,
+          "chars_per_sec": 159.84312789781805
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1651.0286089999795,
+          "time_to_first_token_ms": 1655.7952889999967,
+          "total_time_ms": 2696.912315999981,
+          "chunks_received": 18,
+          "content_chars": 165,
+          "chars_per_sec": 158.48362453109945
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 684.7639400000105,
+          "time_to_first_token_ms": 697.2098470000105,
+          "total_time_ms": 1495.593490999994,
+          "chunks_received": 15,
+          "content_chars": 130,
+          "chars_per_sec": 162.8289870126682
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_none",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1311.7265240000506,
+          "time_to_first_token_ms": 1311.7516000000364,
+          "total_time_ms": 1942.0731339999975,
+          "chunks_received": 12,
+          "content_chars": 119,
+          "chars_per_sec": 188.79253457332675
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1256.410613000014,
+          "time_to_first_token_ms": 1256.4365960000146,
+          "total_time_ms": 1927.1476119999988,
+          "chunks_received": 13,
+          "content_chars": 119,
+          "chars_per_sec": 177.42365513794212
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1063.5113269999579,
+          "time_to_first_token_ms": 1063.6376069999756,
+          "total_time_ms": 2200.5969599999844,
+          "chunks_received": 10,
+          "content_chars": 108,
+          "chars_per_sec": 94.99020322496891
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_none",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1262.69840599997,
+          "time_to_first_token_ms": 1262.7291729999683,
+          "total_time_ms": 2355.9062549999794,
+          "chunks_received": 20,
+          "content_chars": 191,
+          "chars_per_sec": 174.72009168958965
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1339.9892879999697,
+          "time_to_first_token_ms": 1340.0149729999953,
+          "total_time_ms": 2485.9525819999817,
+          "chunks_received": 22,
+          "content_chars": 165,
+          "chars_per_sec": 143.98689658504955
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1260.32984699998,
+          "time_to_first_token_ms": 1260.3549909999856,
+          "total_time_ms": 2212.670571999979,
+          "chunks_received": 18,
+          "content_chars": 169,
+          "chars_per_sec": 177.46218099523162
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_none",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1605.4364400000054,
+          "time_to_first_token_ms": 1605.4623550000429,
+          "total_time_ms": 2411.54403500002,
+          "chunks_received": 15,
+          "content_chars": 165,
+          "chars_per_sec": 204.69389652920123
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 2659.1205380000247,
+          "time_to_first_token_ms": 2659.1451689999985,
+          "total_time_ms": 3673.3155269999997,
+          "chunks_received": 19,
+          "content_chars": 168,
+          "chars_per_sec": 165.65264274860596
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1523.5114060000114,
+          "time_to_first_token_ms": 1523.5372650000159,
+          "total_time_ms": 2432.8989289999754,
+          "chunks_received": 16,
+          "content_chars": 156,
+          "chars_per_sec": 171.5489075202613
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_low",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1260.7489640000153,
+          "time_to_first_token_ms": 1260.9410759999946,
+          "total_time_ms": 1871.896879000019,
+          "chunks_received": 13,
+          "content_chars": 114,
+          "chars_per_sec": 186.59287536056917
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1293.8216040000157,
+          "time_to_first_token_ms": 1293.8475870000161,
+          "total_time_ms": 1873.3998050000196,
+          "chunks_received": 12,
+          "content_chars": 109,
+          "chars_per_sec": 188.0762364712395
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 5438.408177000042,
+          "time_to_first_token_ms": 5446.342387000015,
+          "total_time_ms": 6287.143301000015,
+          "chunks_received": 13,
+          "content_chars": 113,
+          "chars_per_sec": 134.3956674147955
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_low",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1398.1617879999817,
+          "time_to_first_token_ms": 1398.1892209999955,
+          "total_time_ms": 2449.973526000008,
+          "chunks_received": 20,
+          "content_chars": 192,
+          "chars_per_sec": 182.54693389819857
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1251.2216190000345,
+          "time_to_first_token_ms": 1251.259641000047,
+          "total_time_ms": 1932.6794990000167,
+          "chunks_received": 12,
+          "content_chars": 142,
+          "chars_per_sec": 208.38840889783154
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 2661.25273800003,
+          "time_to_first_token_ms": 2661.278912,
+          "total_time_ms": 3845.440642000028,
+          "chunks_received": 21,
+          "content_chars": 174,
+          "chars_per_sec": 146.9393880851021
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_low",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1598.3597659999873,
+          "time_to_first_token_ms": 1598.3857539999917,
+          "total_time_ms": 2417.248729999983,
+          "chunks_received": 15,
+          "content_chars": 144,
+          "chars_per_sec": 175.85359726900333
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1466.7594979999876,
+          "time_to_first_token_ms": 1466.7868989999988,
+          "total_time_ms": 2366.477267999983,
+          "chunks_received": 17,
+          "content_chars": 174,
+          "chars_per_sec": 193.39986955001305
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1473.646118999966,
+          "time_to_first_token_ms": 1473.887612999988,
+          "total_time_ms": 2427.1284509999873,
+          "chunks_received": 18,
+          "content_chars": 167,
+          "chars_per_sec": 175.19182282452752
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_high",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1243.863014999988,
+          "time_to_first_token_ms": 1243.888075999962,
+          "total_time_ms": 1902.7656479999564,
+          "chunks_received": 14,
+          "content_chars": 122,
+          "chars_per_sec": 185.16338267468154
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1223.180033999995,
+          "time_to_first_token_ms": 1223.206269000002,
+          "total_time_ms": 1931.0404739999854,
+          "chunks_received": 14,
+          "content_chars": 113,
+          "chars_per_sec": 159.64190371388264
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1248.3065449999913,
+          "time_to_first_token_ms": 1248.331582999981,
+          "total_time_ms": 1869.694337999988,
+          "chunks_received": 14,
+          "content_chars": 115,
+          "chars_per_sec": 185.07707305372483
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_high",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1350.5220330000043,
+          "time_to_first_token_ms": 1350.5491770000049,
+          "total_time_ms": 2460.5170880000173,
+          "chunks_received": 21,
+          "content_chars": 164,
+          "chars_per_sec": 147.7520191121977
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1454.3089850000115,
+          "time_to_first_token_ms": 1454.3360850000226,
+          "total_time_ms": 2434.8242980000236,
+          "chunks_received": 18,
+          "content_chars": 165,
+          "chars_per_sec": 168.28351204258672
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1237.1600129999933,
+          "time_to_first_token_ms": 1237.1870970000032,
+          "total_time_ms": 2337.150772999962,
+          "chunks_received": 21,
+          "content_chars": 190,
+          "chars_per_sec": 172.73297668422924
+        }
+      ]
+    },
+    {
+      "model": "claude-sonnet-4.6",
+      "provider": "ttc_high",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1560.7180089999702,
+          "time_to_first_token_ms": 1560.7440779999706,
+          "total_time_ms": 2434.380448000013,
+          "chunks_received": 17,
+          "content_chars": 145,
+          "chars_per_sec": 165.97294364014738
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1570.2760200000512,
+          "time_to_first_token_ms": 1570.4212690000077,
+          "total_time_ms": 2375.625833000015,
+          "chunks_received": 15,
+          "content_chars": 157,
+          "chars_per_sec": 194.9815078296036
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 2124.7558879999815,
+          "time_to_first_token_ms": 2124.881787999982,
+          "total_time_ms": 2897.7209330000164,
+          "chunks_received": 15,
+          "content_chars": 182,
+          "chars_per_sec": 235.49531772228215
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "native",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "native",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "native",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        },
+        {
+          "success": false,
+          "error": "unknown provider kind: native",
+          "status_code": null,
+          "time_to_first_byte_ms": null,
+          "time_to_first_token_ms": null,
+          "total_time_ms": null,
+          "chunks_received": 0,
+          "content_chars": 0,
+          "chars_per_sec": null
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "openrouter",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 688.0476500000157,
+          "time_to_first_token_ms": 688.8148090000072,
+          "total_time_ms": 781.6300610000155,
+          "chunks_received": 3,
+          "content_chars": 126,
+          "chars_per_sec": 1357.5355050481223
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 950.9769689999814,
+          "time_to_first_token_ms": 951.3527229999852,
+          "total_time_ms": 1036.868443000003,
+          "chunks_received": 3,
+          "content_chars": 128,
+          "chars_per_sec": 1496.8008221175394
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 962.1185469999887,
+          "time_to_first_token_ms": 988.9877929999784,
+          "total_time_ms": 1041.5482299999894,
+          "chunks_received": 3,
+          "content_chars": 134,
+          "chars_per_sec": 2549.4460786155933
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "openrouter",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 795.2980930000138,
+          "time_to_first_token_ms": 795.6894579999982,
+          "total_time_ms": 893.399555000002,
+          "chunks_received": 3,
+          "content_chars": 154,
+          "chars_per_sec": 1576.090954039213
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 787.6759399999855,
+          "time_to_first_token_ms": 787.9505039999799,
+          "total_time_ms": 873.9654409999957,
+          "chunks_received": 3,
+          "content_chars": 146,
+          "chars_per_sec": 1697.379607450891
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 832.4383430000069,
+          "time_to_first_token_ms": 834.4290889999968,
+          "total_time_ms": 1028.5727570000063,
+          "chunks_received": 3,
+          "content_chars": 150,
+          "chars_per_sec": 772.6237046267853
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "openrouter",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 731.0529680000002,
+          "time_to_first_token_ms": 751.3254039999993,
+          "total_time_ms": 929.6081199999833,
+          "chunks_received": 3,
+          "content_chars": 164,
+          "chars_per_sec": 919.8872648990533
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 850.9511900000177,
+          "time_to_first_token_ms": 853.0179349999969,
+          "total_time_ms": 1050.78827600002,
+          "chunks_received": 3,
+          "content_chars": 157,
+          "chars_per_sec": 793.8500748197712
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 967.5816320000195,
+          "time_to_first_token_ms": 973.6501810000107,
+          "total_time_ms": 1113.7618380000163,
+          "chunks_received": 3,
+          "content_chars": 178,
+          "chars_per_sec": 1270.4153516648003
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_none",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1262.9027070000234,
+          "time_to_first_token_ms": 1262.9027070000234,
+          "total_time_ms": 1317.710423000051,
+          "chunks_received": 2,
+          "content_chars": 111,
+          "chars_per_sec": 2025.2622824119185
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1080.9742040000287,
+          "time_to_first_token_ms": 1080.9742040000287,
+          "total_time_ms": 1165.5936710000105,
+          "chunks_received": 2,
+          "content_chars": 111,
+          "chars_per_sec": 1311.7548944148264
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1149.510012999997,
+          "time_to_first_token_ms": 1149.510012999997,
+          "total_time_ms": 1213.0658469999958,
+          "chunks_received": 2,
+          "content_chars": 111,
+          "chars_per_sec": 1746.4958448976058
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_none",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1206.4980559999867,
+          "time_to_first_token_ms": 1206.4980559999867,
+          "total_time_ms": 1307.0749899999896,
+          "chunks_received": 3,
+          "content_chars": 150,
+          "chars_per_sec": 1491.3956315271619
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1407.6316270000007,
+          "time_to_first_token_ms": 1407.6316270000007,
+          "total_time_ms": 1467.824016999998,
+          "chunks_received": 3,
+          "content_chars": 160,
+          "chars_per_sec": 2658.1433300788826
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1323.712632999957,
+          "time_to_first_token_ms": 1323.712632999957,
+          "total_time_ms": 1402.4211429999696,
+          "chunks_received": 2,
+          "content_chars": 145,
+          "chars_per_sec": 1842.2404388035889
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_none",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1462.7491389999818,
+          "time_to_first_token_ms": 1462.7491389999818,
+          "total_time_ms": 1717.4803199999928,
+          "chunks_received": 3,
+          "content_chars": 150,
+          "chars_per_sec": 588.8560615592385
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1242.2752880000303,
+          "time_to_first_token_ms": 1242.2752880000303,
+          "total_time_ms": 1423.039392000021,
+          "chunks_received": 3,
+          "content_chars": 158,
+          "chars_per_sec": 874.067342485254
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1178.1064740000033,
+          "time_to_first_token_ms": 1178.1064740000033,
+          "total_time_ms": 1383.8720149999517,
+          "chunks_received": 3,
+          "content_chars": 161,
+          "chars_per_sec": 782.4439370051781
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_low",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1402.5204099999655,
+          "time_to_first_token_ms": 1402.5204099999655,
+          "total_time_ms": 1470.3984349999928,
+          "chunks_received": 3,
+          "content_chars": 134,
+          "chars_per_sec": 1974.1293297786165
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1434.8635650000006,
+          "time_to_first_token_ms": 1434.8635650000006,
+          "total_time_ms": 1485.0228549999542,
+          "chunks_received": 3,
+          "content_chars": 135,
+          "chars_per_sec": 2691.42565614714
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1434.6654319999743,
+          "time_to_first_token_ms": 1434.6654319999743,
+          "total_time_ms": 1524.8400560000164,
+          "chunks_received": 3,
+          "content_chars": 122,
+          "chars_per_sec": 1352.9305095848595
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_low",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1252.7638249999882,
+          "time_to_first_token_ms": 1252.7638249999882,
+          "total_time_ms": 1422.103222999965,
+          "chunks_received": 3,
+          "content_chars": 160,
+          "chars_per_sec": 944.8480500681941
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1475.4623000000038,
+          "time_to_first_token_ms": 1475.4623000000038,
+          "total_time_ms": 1635.0810550000006,
+          "chunks_received": 3,
+          "content_chars": 167,
+          "chars_per_sec": 1046.2429681274193
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1314.6921709999901,
+          "time_to_first_token_ms": 1314.6921709999901,
+          "total_time_ms": 1403.6231449999832,
+          "chunks_received": 3,
+          "content_chars": 152,
+          "chars_per_sec": 1709.1907708107624
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_low",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1386.9967990000305,
+          "time_to_first_token_ms": 1386.9967990000305,
+          "total_time_ms": 1647.263707000036,
+          "chunks_received": 3,
+          "content_chars": 132,
+          "chars_per_sec": 507.17166087052914
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1395.7050209999693,
+          "time_to_first_token_ms": 1395.7050209999693,
+          "total_time_ms": 1587.2920749999935,
+          "chunks_received": 3,
+          "content_chars": 163,
+          "chars_per_sec": 850.788174862689
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1217.0076379999841,
+          "time_to_first_token_ms": 1217.0076379999841,
+          "total_time_ms": 1415.0023600000168,
+          "chunks_received": 3,
+          "content_chars": 147,
+          "chars_per_sec": 742.4440334322435
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_high",
+      "input_size": "short",
+      "input_tokens": 178,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1079.468200000008,
+          "time_to_first_token_ms": 1079.468200000008,
+          "total_time_ms": 1142.092749000028,
+          "chunks_received": 2,
+          "content_chars": 111,
+          "chars_per_sec": 1772.4678544186295
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1186.879877000024,
+          "time_to_first_token_ms": 1186.879877000024,
+          "total_time_ms": 1301.5587319999895,
+          "chunks_received": 3,
+          "content_chars": 126,
+          "chars_per_sec": 1098.7204223484605
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1224.399769999991,
+          "time_to_first_token_ms": 1224.399769999991,
+          "total_time_ms": 1313.8546889999816,
+          "chunks_received": 3,
+          "content_chars": 121,
+          "chars_per_sec": 1352.6366280652783
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_high",
+      "input_size": "medium",
+      "input_tokens": 2856,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1501.518998999984,
+          "time_to_first_token_ms": 1501.518998999984,
+          "total_time_ms": 1661.7216289999988,
+          "chunks_received": 3,
+          "content_chars": 159,
+          "chars_per_sec": 992.4930695581298
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1357.7440489999617,
+          "time_to_first_token_ms": 1357.7440489999617,
+          "total_time_ms": 1395.0806989999478,
+          "chunks_received": 2,
+          "content_chars": 141,
+          "chars_per_sec": 3776.450217147294
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1644.0091860000052,
+          "time_to_first_token_ms": 1644.0091860000052,
+          "total_time_ms": 1725.7666809999819,
+          "chunks_received": 3,
+          "content_chars": 164,
+          "chars_per_sec": 2005.9323001523817
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-flash-lite",
+      "provider": "ttc_high",
+      "input_size": "long",
+      "input_tokens": 7379,
+      "runs": [
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1235.0103999999646,
+          "time_to_first_token_ms": 1235.0103999999646,
+          "total_time_ms": 1373.3306579999862,
+          "chunks_received": 3,
+          "content_chars": 165,
+          "chars_per_sec": 1192.8838362922536
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1149.7270809999804,
+          "time_to_first_token_ms": 1149.7270809999804,
+          "total_time_ms": 1267.7304399999798,
+          "chunks_received": 3,
+          "content_chars": 159,
+          "chars_per_sec": 1347.4192713446475
+        },
+        {
+          "success": true,
+          "error": null,
+          "status_code": 200,
+          "time_to_first_byte_ms": 1516.3512089999927,
+          "time_to_first_token_ms": 1516.3512089999927,
+          "total_time_ms": 1636.2690120000138,
+          "chunks_received": 3,
+          "content_chars": 135,
+          "chars_per_sec": 1125.7711250762002
+        }
+      ]
+    }
+  ]
+}

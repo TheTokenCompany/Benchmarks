@@ -1,6 +1,9 @@
 # Results
 **/results/
-latency/results.json
+latency/.longrun-instance
+latency/ec2-output.log
+latency/longrun-*.jsonl
+latency/longrun-*.log
 
 # Environment
 .env
