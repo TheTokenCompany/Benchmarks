@@ -16,3 +16,4 @@ __pycache__/
 .claude/
 CLAUDE.md
 bench.txt
+financebench/compression_cache/

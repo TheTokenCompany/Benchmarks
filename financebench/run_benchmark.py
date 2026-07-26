@@ -4,7 +4,9 @@
 import argparse
 import json
 import os
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 os.environ.setdefault("HF_HUB_DISABLE_IMPLICIT_TOKEN", "1")
 
@@ -23,8 +25,16 @@ def load_financebench():
     return ds
 
 
-def extract_context(item) -> str:
-    """Extract oracle context from evidence pages."""
+_FULLDOC = None
+if os.getenv("FULLDOC_JSON"):
+    with open(os.environ["FULLDOC_JSON"]) as _f:
+        _FULLDOC = json.load(_f)
+
+
+def extract_context(item, qid=None) -> str:
+    """Oracle evidence pages, or the full filing when FULLDOC_JSON is set."""
+    if _FULLDOC is not None and qid is not None:
+        return _FULLDOC[qid]
     evidence_list = item["evidence"]
     pages = []
     for ev in evidence_list:
@@ -45,7 +55,10 @@ def build_prompt(context: str, question: str) -> list[dict]:
 
 def query_llm(messages: list[dict]) -> str:
     """Send messages to OpenAI and return the response text."""
-    client = OpenAI(api_key=config.OPENAI_API_KEY)
+    client = OpenAI(
+        api_key=os.getenv("ANSWER_API_KEY", config.OPENAI_API_KEY),
+        base_url=os.getenv("ANSWER_BASE_URL") or None,
+    )
 
     for attempt in range(config.MAX_RETRIES):
         try:
@@ -53,7 +66,7 @@ def query_llm(messages: list[dict]) -> str:
                 model=config.OPENAI_MODEL,
                 messages=messages,
 
-                max_completion_tokens=1024,
+                max_completion_tokens=8000,
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
@@ -94,6 +107,18 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
     os.makedirs(config.RESULTS_DIR, exist_ok=True)
     results_path = os.path.join(config.RESULTS_DIR, f"{config_name}.json")
 
+    # Precompressed cache (written by precompress_v71.py) takes priority over the API
+    compression_cache = None
+    if is_compressed:
+        cache_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "compression_cache", f"{config_name}.json",
+        )
+        if os.path.exists(cache_path):
+            with open(cache_path) as f:
+                compression_cache = json.load(f)
+            print(f"  [{config_name}] Using precompressed cache ({len(compression_cache)} entries)")
+
     # Resume support
     results = load_existing_results(results_path)
     completed_ids = get_completed_ids(results)
@@ -114,7 +139,7 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
 
     print(f"  [{config_name}] {len(results)} done, {len(remaining)} remaining")
 
-    for i, item in tqdm(remaining, desc=config_name, unit="q"):
+    def process_question(i, item):
         qid = item.get("question_id", str(i))
         question = item["question"]
         gold_answer = item["answer"]
@@ -122,11 +147,26 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
         question_reasoning = item.get("question_reasoning", "")
 
         # Extract context
-        raw_context = extract_context(item)
+        raw_context = extract_context(item, qid=qid)
 
         # Compress if needed
         compression_info = {}
-        if is_compressed:
+        if is_compressed and compression_cache is not None:
+            if qid not in compression_cache:
+                print(f"  Cache miss for question {qid}; skipping.")
+                return None
+            cached = compression_cache[qid]
+            context_for_llm = cached["compressed_text"]
+            compression_info = {
+                "original_tokens": cached["original_tokens"],
+                "compressed_tokens": cached["compressed_tokens"],
+                "compression_ratio": (
+                    cached["compressed_tokens"] / cached["original_tokens"]
+                    if cached["original_tokens"] > 0
+                    else 1.0
+                ),
+            }
+        elif is_compressed:
             try:
                 comp_result = compress_text(raw_context, aggressiveness, bear_model)
                 context_for_llm = comp_result["compressed_text"]
@@ -175,10 +215,19 @@ def run_single_config(config_name: str, dataset, limit: int | None = None):
             "aggressiveness": aggressiveness,
             **compression_info,
         }
+        return result
 
-        results.append(result)
-        # Incremental save
-        save_results(results_path, results)
+    workers = int(os.getenv("QUESTION_CONCURRENCY", "10"))
+    lock = threading.Lock()
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = [ex.submit(process_question, i, item) for i, item in remaining]
+        for fut in tqdm(as_completed(futures), total=len(futures), desc=config_name, unit="q"):
+            result = fut.result()
+            if result is None:
+                continue
+            with lock:
+                results.append(result)
+                save_results(results_path, results)
 
     return results
 

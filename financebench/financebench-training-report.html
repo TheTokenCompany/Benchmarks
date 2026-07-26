@@ -1,0 +1,966 @@
+<title>FinanceBench compression: training-focus report</title>
+<style>
+  :root {
+    --surface: #fcfcfb; --page: #f9f9f7;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --band: rgba(137,135,129,0.14);
+    --seq100:#cde2fb; --seq200:#9ec5f4; --seq300:#6da7ec; --seq400:#3987e5; --seq500:#256abf; --seq600:#184f95; --seq700:#0d366b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      --surface: #1a1a19; --page: #0d0d0d;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --band: rgba(137,135,129,0.16);
+    }
+  }
+  :root[data-theme="dark"] {
+    --surface: #1a1a19; --page: #0d0d0d;
+    --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+    --band: rgba(137,135,129,0.16);
+  }
+  body { background: var(--page); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0; padding: 32px 20px 56px; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 { font-size: 1.45rem; margin: 0 0 6px; text-wrap: balance; }
+  h2 { font-size: 1.05rem; margin: 36px 0 6px; }
+  .sub { color: var(--ink-2); font-size: 0.92rem; line-height: 1.5; max-width: 70ch; margin: 0; }
+  .prose { color: var(--ink-2); font-size: 0.9rem; line-height: 1.55; max-width: 70ch; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 20px; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .tile .v { font-size: 1.55rem; font-weight: 650; }
+  .tile .l { color: var(--ink-2); font-size: 0.78rem; line-height: 1.4; margin-top: 4px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 18px 10px; margin-top: 12px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; color: var(--ink-2); margin: 0 0 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 13px; height: 3px; border-radius: 2px; display: inline-block; }
+  .sw.dash { background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px); height: 2px; }
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 760px) { .panels { grid-template-columns: 1fr; } }
+  .chartbox { position: relative; overflow-x: auto; }
+  svg { display: block; max-width: 100%; height: auto; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .tip { position: fixed; pointer-events: none; display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.18); padding: 7px 10px; font-size: 0.78rem; line-height: 1.5; white-space: pre-line; z-index: 5; }
+  .tip b { font-variant-numeric: tabular-nums; }
+  .note { color: var(--muted); font-size: 0.78rem; margin: 6px 2px 4px; max-width: 78ch; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 0.83rem; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; font-size: 0.82rem; color: var(--ink-2); padding: 2px 0 8px; }
+  th, td { text-align: right; padding: 5px 9px; border-bottom: 1px solid var(--grid); }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--axis); }
+  ol.recs { padding-left: 1.2em; max-width: 74ch; }
+  ol.recs li { margin: 10px 0; line-height: 1.5; font-size: 0.92rem; }
+  .overflow { overflow-x: auto; }
+</style>
+
+<div class="wrap">
+  <h1>What a finance-tuned bear should learn</h1>
+  <p class="sub">FinanceBench (150 open-source questions, oracle SEC-filing context and full-filing variants),
+  30+ configurations across 6 compression models/ensembles × 2 answering models, with content-level keep/drop
+  analysis of every compressed corpus. All runs 24.07.2026 with fixed harness token caps. Judge: gpt-5-mini
+  throughout. Error bars on all accuracy charts are 95% binomial confidence intervals (n = 150).</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="v">82.7%</div><div class="l"><b>full-document</b> accuracy at 57% tokens kept (v7.1+safetab) — beats the 78.7% uncompressed ~121k-token baseline by +4 pp, the compresr pattern with higher absolutes</div></div>
+    <div class="tile"><div class="v">+27 pp</div><div class="l">accuracy recovered by force-keeping numbers (safenum) vs plain v7.1 at aggressiveness 0.5, gpt-5-mini — with a <b>smaller</b> context than old models at the same score</div></div>
+    <div class="tile"><div class="v">78-83%</div><div class="l">of compression-induced errors had lost a gold-answer figure from the context (vs 32-43% among questions that stayed correct)</div></div>
+    <div class="tile"><div class="v">200&times;</div><div class="l">compression at which the query-aware focus model still answers 16.7% of questions — same hit rate from a 121k-token filing as from oracle pages</div></div>
+  </div>
+
+  <h2>0 &middot; The whole study in one chart</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s1)"></i>other bears (4.1 / diverse+code / mb / dscale-fin)</span>
+      <span><i class="sw" style="background:var(--s4)"></i>v7.1 plain / PROD bear-1.2</span>
+      <span><i class="sw" style="background:var(--s5)"></i>v7.1 + keep-rules</span>
+      <span><i class="sw" style="background:var(--s3)"></i>v7.2-focus</span>
+      <span><i class="sw" style="background:var(--s2)"></i>focus standalone</span>
+      <span><i class="sw" style="background:var(--s6)"></i>fusion (v7.1 ∪ focus)</span>
+      <span><i class="sw" style="background:var(--s7)"></i>v8 (trained overnight, clean data)</span>
+      <button id="linetoggle" style="margin-left:auto;background:var(--surface);color:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:0.78rem;cursor:pointer">Lines: on</button>
+    </div>
+    <div class="chartbox"><svg id="masterA" width="884" height="440" viewBox="0 0 884 440" role="img" aria-label="Every oracle-context configuration: accuracy versus tokens kept, colored by model family"></svg></div>
+    <div class="chartbox" style="margin-top:10px"><svg id="masterB" width="884" height="440" viewBox="0 0 884 440" role="img" aria-label="Every full-filing configuration: accuracy versus tokens kept, colored by model family"></svg></div>
+    <div class="chartbox" style="margin-top:10px"><svg id="masterC" width="884" height="440" viewBox="0 0 884 440" role="img" aria-label="gpt-5-mini answerer on full filings: champion configs versus its own uncompressed control"></svg></div>
+    <p class="note">Top two panels: every Gemini-answered configuration, split by context regime. Third panel
+    (E28): the champion full-filing configs re-answered by <b>gpt-5-mini</b> against gpt-5-mini's own
+    full-context control — a separate reader, so it gets its own graph rather than mixing with the Gemini
+    panels. Hover any point for its exact config. Labeled points mark each regime's Pareto frontier; dashed
+    line is that regime's uncompressed control. CIs (&plusmn;4-8 pp) omitted here for legibility — see the
+    per-section charts. The oracle panel colors by model family (legend above); the <b>full-filings panel
+    colors by ownership</b> — orange = taaha's models served plain (bear-4.x / v7.x / dscale / ws72 / gen3 /
+    prod bear-1.2 with no added serving logic), violet = otso's work: models trained in this campaign (v8 SFT +
+    v9 RL) plus every config using otso's serving inventions (safe* keep-rules, weld, budget pinning, fusion,
+    focused gating, label-render) even when the underlying model is taaha's. Hover labels and the Full-numbers
+    table disambiguate.</p>
+  </div>
+
+  <h2>1 &middot; Accuracy vs tokens kept (oracle contexts)</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s1)"></i>bear-4.1</span>
+      <span><i class="sw" style="background:var(--s2)"></i>bear-diverse+code-8192</span>
+      <span><i class="sw" style="background:var(--s3)"></i>bear-mb-diverse-8192</span>
+      <span><i class="sw" style="background:var(--s4)"></i>bear-v7.1-rl-max-v2</span>
+      <span><i class="sw" style="background:var(--s5)"></i>v7.1 + force-keep numbers</span>
+      <span><i class="sw dash"></i>control (no compression)</span>
+    </div>
+    <div class="panels">
+      <div class="chartbox"><svg id="accA" width="450" height="330" viewBox="0 0 450 330" role="img" aria-label="Accuracy versus tokens kept, gpt-5-mini answerer, with 95 percent confidence intervals"></svg></div>
+      <div class="chartbox"><svg id="accB" width="450" height="330" viewBox="0 0 450 330" role="img" aria-label="Accuracy versus tokens kept, Gemini 3.5 Flash-Lite answerer, with 95 percent confidence intervals"></svg></div>
+    </div>
+    <p class="note">Each point is one aggressiveness setting (0.3 / 0.5 / 0.7); x is measured token retention;
+    whiskers are 95% binomial CIs (&plusmn;4-8 pp at n = 150). The magenta safenum line sits far above every
+    same-budget alternative on both answerers — those gaps clear the CIs; single-step differences between
+    adjacent variants mostly don't. The old models were only run on the Gemini panel.</p>
+  </div>
+
+  <h2>2 &middot; What survives compression, by content category</h2>
+  <div class="card">
+    <div class="chartbox"><svg id="heat" width="884" height="300" viewBox="0 0 884 300" role="img" aria-label="Heatmap of keep rate by content category and model at aggressiveness 0.5"></svg></div>
+    <p class="note">Word keep-rate at aggressiveness 0.5. Old models drop what matters most: percent tokens keep at
+    17-28%, scale words ("million", "billion") at 20-25% — figures survive stripped of their magnitude. v7.1 fixed
+    scale words (95%) but still halves money and percent tokens; safenum pins all numeric classes at ~100%.
+    Stopwords are correctly near zero everywhere.</p>
+  </div>
+
+  <h2>3 &middot; Table rows starve while boilerplate feasts</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s1)"></i>table rows (&ge;3 numbers)</span>
+      <span><i class="sw" style="background:var(--s2)"></i>prose lines</span>
+      <span><i class="sw" style="background:var(--s3)"></i>boilerplate / page furniture</span>
+    </div>
+    <div class="chartbox"><svg id="lines" width="884" height="290" viewBox="0 0 884 290" role="img" aria-label="Bar chart of line-class survival by model at aggressiveness 0.5"></svg></div>
+    <p class="note">Mean fraction of each line's words surviving, aggressiveness 0.5. Every model ranks boilerplate
+    first. Pre-v7.1 models rank table rows dead last — bear-4.1 keeps 11% of table-row content while keeping 45% of
+    "Table of Contents"-grade furniture. At v7.1 @ 0.7, "notes" keeps 93% and "lease" 91% while percent tokens keep 15%.</p>
+  </div>
+
+  <h2>4 &middot; Dropped gold figures cause the errors</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s2)"></i>among compression-induced errors</span>
+      <span><i class="sw" style="background:var(--s1)"></i>among questions that stayed correct</span>
+    </div>
+    <div class="chartbox"><svg id="link" width="884" height="270" viewBox="0 0 884 270" role="img" aria-label="Bar chart of gold-figure drop rate among errors versus surviving questions"></svg></div>
+    <p class="note">Share of questions whose gold-answer figure was deleted from the compressed context
+    (bear-v7.1-rl-max-v2, plain). Errors are 1.4-3.4&times; more likely to have lost the figure — direct causal
+    evidence. Under safenum the dropped share is 0.0 in both groups at every aggressiveness. (Group sizes vary
+    per bar — 25-90 questions — so CIs are wide; the error-vs-correct gap clears them at every point.)</p>
+  </div>
+
+  <h2>5 &middot; What force-keeping numbers rescues — and what it can't</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s4)"></i>plain v7.1</span>
+      <span><i class="sw" style="background:var(--s5)"></i>+ force-keep numbers</span>
+    </div>
+    <div class="chartbox"><svg id="rescue" width="884" height="270" viewBox="0 0 884 270" role="img" aria-label="Induced errors by question type, plain versus safenum, both answerers"></svg></div>
+    <p class="note">Compression-induced errors at aggressiveness 0.5 by question type. Metric lookups collapse
+    (30&rarr;4 on gpt-5-mini, 34&rarr;10 on Gemini); qualitative "novel" questions barely move (18&rarr;11, 15&rarr;6).
+    Residual safenum errors (10 read): 6/10 kept the right number but lost its <b>label</b> — row header, segment
+    name, or period — so the model paired a surviving figure with the wrong line item; 2/10 multi-step method
+    divergence; 2/10 dropped non-numeric facts.</p>
+  </div>
+
+  <h2>6 &middot; The keep-rule race (oracle, aggressiveness 0.5, Gemini)</h2>
+  <div class="card">
+    <div class="chartbox"><svg id="race" width="884" height="380" viewBox="0 0 884 380" role="img" aria-label="Horizontal bars: accuracy of each keep-rule variant at aggressiveness 0.5, with 95 percent confidence intervals"></svg></div>
+    <p class="note">All variants derive from the same v7.1 keep-probs (one 4-second B200 pass); whiskers are 95%
+    binomial CIs. Structural rules (row labels + periods, "safetab") match the &plusmn;2-word window ("safectx2")
+    at 9 pp less token budget. "weld" (atomic value-spans, no forcing) proves span atomicity is not the failure
+    mode — it equals plain. FUSE = OR-union with the query-aware focus model: +7.3 pp over plain for 2 pp of
+    tokens; on top of safetab it adds up to +3.3 pp (best oracle compressed result: FUSE-safetab @ 0.3 = 73.3%).
+    The rule-family differences sit inside each other's CIs; the rules-vs-plain gap (~25-30 pp) does not.</p>
+  </div>
+
+  <h2>7 &middot; Full documents: compression beats the uncompressed baseline</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s4)"></i>v7.1 plain</span>
+      <span><i class="sw" style="background:var(--s5)"></i>v7.1 + safetab</span>
+      <span><i class="sw" style="background:var(--s6)"></i>FUSE (v7.1 OR focus) + safetab</span>
+      <span><i class="sw dash"></i>full-filing control (no compression)</span>
+    </div>
+    <div class="chartbox"><svg id="fdchart" width="884" height="330" viewBox="0 0 884 330" role="img" aria-label="Full-document accuracy versus tokens kept, with 95 percent confidence intervals"></svg></div>
+    <p class="note">Same 150 questions, but the context is the <b>entire filing</b> (median ~104k o200k tokens;
+    competitor "compresr" benchmarks at ~106k avg on a 128-question subset) instead of oracle pages. Long context
+    costs the baseline 4 pp (82.7% oracle &rarr; 78.7% full-doc); safetab compression at 57% retention wins it
+    back — 82.7%, +4 pp over the uncompressed baseline at ~43% cost savings. compresr's published table (GPT-5.2 +
+    latte_v2): 73% &rarr; 77% at ~2&times;. The standalone query-aware focus model extracts ~600 tokens (0.5%)
+    from these filings and still answers 16.7% — off this chart's x-scale but the reason the FUSE union works.
+    FUSE + safetab extends the frontier at the aggressive end: 80.0% at 47% kept (2.1&times;), +4 pp over safetab
+    alone and still above the uncompressed baseline; at lighter settings fusion is within noise. Note the
+    compressed-vs-baseline gaps here are within single-run 95% CIs — treat the "+4 pp" as a repeated pattern
+    (it appears at two operating points and in compresr's own table), not a single proven delta.</p>
+  </div>
+
+  <h2>8 &middot; Rehabilitating the query-aware model: 7 serving-pipeline experiments</h2>
+  <div class="card">
+    <div class="legend">
+      <span><i class="sw" style="background:var(--s6)"></i>focus, fixed pipeline (line-split + rank-budget)</span>
+      <span><i class="sw" style="background:var(--s4)"></i>v7.1 plain (reference)</span>
+      <span><i class="sw dash"></i>control (no compression)</span>
+    </div>
+    <div class="chartbox"><svg id="fixchart" width="884" height="330" viewBox="0 0 884 330" role="img" aria-label="Accuracy versus tokens kept for the fixed focus serving pipeline against v7.1 plain, with 95 percent confidence intervals"></svg></div>
+    <p class="note">The stock focus runner scored 16.7% because its <b>serving pipeline</b> was broken, not the
+    model: the punctuation sentence-splitter merges whole financial tables into one giant unit and mean-pooling
+    dilutes the answer-row spike, while tau-thresholding has no usable operating point (scores collapse near 0).
+    Fixes tested in one 10-second B200 pass: line-level units + rank-based token budgets. Gold-figure recall
+    (ceiling: only 46% of numeric golds appear verbatim in any context): stock 35% of ceiling at 3.6% kept &rarr;
+    fixed 78% of ceiling at 10% kept, 93% at 30%. Null results: pooling operator (max vs mean), word-level
+    granularity, and stripping directive query phrasing all changed nothing (&plusmn;2 pp). Accuracy: at 30%
+    retention the fixed query-aware pipeline scores <b>53.3%</b> — the best sub-40%-retention result in the study
+    (v7.1 plain needs 47% of tokens for 48.0%) — and fuse2 (v7.1+safetab OR top focus lines) reaches
+    <b>72.7% at 64% kept</b> with figure recall at ceiling. At 10% retention accuracy collapses to ~20% despite
+    78%-of-ceiling recall: surviving figures lose their row/period labels, and the answerer won't commit to
+    unlabeled numbers — the same number+label failure mode as section 5, now confirmed from a second direction.
+    The fuse2 grid sweep (v7.1 aggressiveness &times; focus-line budget) set the study's best compressed result:
+    <b>76.7% at 66% kept</b> with a <i>tighter</i> v7.1 threshold and a <i>bigger</i> focus budget — tokens chosen
+    by the query-conditioned model outrank tokens chosen by general importance. Pushing the focus budget further
+    traces the frontier to the doorstep of control: f50 78.0% @ 72%, <b>f70 81.3% @ 79%</b> (1.4 pp from the
+    uncompressed 82.7%), f90 79.3% @ 86% (flat — the last 15% of tokens buys nothing).</p>
+  </div>
+
+  <h2>9 &middot; Ceiling probes: frontier-model oracle compression &amp; a second reader (E28-E30)</h2>
+  <div class="card">
+    <p><b>E28 — reader swap.</b> The four champion full-filing configs re-answered by gpt-5-mini (third panel in
+    section 0). gpt-5-mini's own full-context control is <b>85.3%</b>; <b>dscale-fin safetab@0.3 scores 86.0% at
+    71% kept</b> — compression beats full context under a second, stronger reader too, and the ranking of configs
+    is preserved (safetab@0.5 84.7% &gt; saferow@0.5 83.3% &gt; ws72fin 81.3%). The compression signal is
+    reader-independent; only the absolute level shifts (+2-6 pp over Gemini).</p>
+    <p><b>E29 — Fable 5 as an oracle <i>extractive</i> compressor on the 17 never-answered questions.</b>
+    Claude Fable 5 (max effort) read each full filing with the question — <i>not</i> the gold — and emitted a
+    strictly verbatim extraction (validated: 100% of output lines are exact substrings of the source, on all 17).
+    Extracts were tiny (0.2-11% retention, median &asymp;0.6%) and, spot-checked, complete — e.g. for the 3M
+    quick-ratio question the extract holds current assets, inventories, and current liabilities tightly
+    juxtaposed; quick ratio = (15,754&minus;5,280)/10,936 = 0.96 = the gold. Gemini answered from these ideal
+    contexts: <b>0/17 flipped</b> (gold-ambiguous 0/10, needs-computation 0/5, judge-artifact 0/2). Even a frontier-model oracle compressor rescues none of them — Gemini declines to compute
+    (answered "the quick ratio is not mentioned" while staring at all three components), the 10 defective golds
+    stay defective (Q135's gold asserts a spin-off that closed in Nov 2020), and the judge stays strict
+    (Q133: Gemini's 10%&times;$700M=$70M vs the gold author's $700M/9=$77.78M). This closes the loop on the
+    failure forensics: the 17 are reader/gold/judge failures, not compression failures — context selection on
+    FinanceBench is effectively solved at these questions, and the reliable-flip channel through better
+    compression is exhausted. (Caveat: union across ~60 configs did reach 133/150, so stochastic flips exist —
+    but best-of-N against the judge raises union accuracy, not the expected single-run accuracy a config is
+    scored on.)</p>
+    <p><b>E30 — Fable 5 as an <i>abstractive</i> compressor: 3/17 flipped.</b> Same 17 questions, but Fable
+    could reorganize — normalize table rows into labeled lines ("Purchases of property and equipment (capital
+    expenditures): FY2022 = 442"), spell out units/periods, juxtapose components — while forbidden from
+    computing or answering (leak-checked: the flipped abstracts contain only labeled raw figures, no ratios,
+    no conclusions). Result: <b>Q14, Q23, Q141 flip CORRECT</b> at 0.6-14% retention (needs-computation 1/5,
+    gold-ambiguous 2/10, judge-artifact 0/2). The extractive-vs-abstractive delta (0/17 vs 3/17) is pure
+    <i>representation</i>: the same reader that answered "the quick ratio is not mentioned" while holding all
+    three raw components will happily compute once each figure carries its statement + period + units label.
+    Caveat: with judge noise at 4-7 flips per 150-question run, 3/17 is suggestive rather than proven — but it
+    points at a deployable lever — <i>if labels are correct</i> (see E31).</p>
+    <p><b>E31 — heuristic labeled-render: NEGATIVE.</b> The cheap mechanization (banner lines
+    <code>### &lt;nearest title above&gt; | &lt;units&gt; | &lt;period&gt;</code> prepended to kept table regions,
+    all verbatim doc lines) was applied to both champions and run on the full 150:
+    v7.1-safetab@0.5 <b>82.7&rarr;80.7%</b> (gained 3 / lost 6), dscale-safetab@0.3 <b>84.0&rarr;78.7%</b>
+    (gained 3 / lost 11), zero of the hard-17 touched. Misattached banners (nearest-above title is often the
+    wrong statement for a fragment surviving mid-document) actively mislead — worse the more table fragments
+    survive, hence dscale's larger drop. Verdict pair: E30 proves <i>correct</i> per-figure labeling unlocks
+    reader arithmetic; E31 proves <i>approximately-correct</i> labeling is worse than none. The representation
+    lever needs real table structure (row label + column&rarr;period mapping) — a structured-render layer or a
+    model that learns it — not proximity heuristics. Champions remain the unrendered safetab configs.</p>
+  </div>
+
+  <h2>10 &middot; Overnight-2: wave-2 SFT and the first RL wins (E32-E33)</h2>
+  <div class="card">
+    <p><b>E32 — wave-2 SFT (wide-halo masks).</b> Three runs (w2-140, w2-140-s2, w2-ettin-400m), all healthy,
+    per-question-type keep ratios finally tracking targets. Transfer verdict: <b>w2-ettin (400M backbone) is
+    the wave's best</b> — budget33+safetab 78.7% @ 51%, budget22+safetab 75.3% @ 42.5%, raw budget22 60.7% @
+    22% — but nothing beat wave-1's deep record (r1-ep4 68.0% @ 22%) and the v7.1-rules champions held. The
+    early-epoch-transfers-better inversion replicated a third time (s2ep4 62.0% vs full-trained s2 57.3% at
+    budget22).</p>
+    <p><b>E33 — v9 RL (reward-weighted regression): the deep Pareto moved.</b> Trainer: taaha's RWR mechanics
+    (K=6 sampled word-masks per item, softmax-weighted imitation, KL-to-frozen-ref, keep floor) with an
+    end-to-end reward: render each candidate, ask gemini-3.1-flash-lite the question against it, score by
+    deterministic numeric match to the gold (<i>no LLM judge</i>), minus &lambda;&middot;token-retention —
+    evaluated at the 12-33% band where reward has real dynamic range (probe: survival 0.83 full &rarr; 0.17
+    @ 22% &rarr; 0.00 @ 12%). Found and fixed a NaN-Gumbel bug inherited from the source trainer (its
+    exploration had been silently absent). First runs collapsed after epoch 1 (classic), but the half-epoch
+    peak checkpoint from the s2ep4 init scored 0.75 answer-survival @ 22% (init baseline 0.667), and on the
+    full 150: <b>73.3% @ 22% kept (4.5&times;) — +5.3 pp over the all-time deep record, +11.3 over its own
+    SFT init — and 76.0% @ 33% (3&times;, +6.0 over the record)</b>. KL 0.3 then stabilized training
+    (0.67-0.705 held across 2 full epochs, no collapse). Reward substrates regenerated from Alan's pipelines
+    for the next rounds: LEDGAR 289 MCQs (48% yield, $6.88), SECQUE 58 (10% yield, $70.75). In flight:
+    KL 0.15 middle-ground, iterated RWR re-anchored at the peak, and an ettin-backbone RL prep.</p>
+    <p><b>How the night ended (all follow-on rounds resolved).</b> The RL gain came in exactly one step:
+    SFT ep4 (62.0% @ 22%) &rarr; one RWR round at KL 0.3 &rarr; <b>74.0% @ 22%</b>. Every attempt to extract a
+    second step failed in an instructive way: re-anchored rounds on the same 2,000 reward items raised val
+    (0.705&rarr;0.76&rarr;0.765) but LOWERED benchmark transfer (71.3% @ 22%) — the policy exploits a fixed
+    reward set; a disjoint fresh-data round from the champion was flat (val 0.71) — the 140M lineage is
+    saturated; and the ettin-400M run, despite the night's best and most stable val (0.785, +15 over its
+    anchor), collapsed to 60.0% @ 22% on the benchmark — its gains lived in the single-centered-chunk training
+    distribution and died under full-document sliding-window serving. Four separate instances tonight of
+    offline metrics mis-ranking real transfer (AUPRC ep9-vs-ep4, val-vs-FinanceBench for iter2, for ettin, and
+    the wave-1 inversion) — the eval fleet on real filings is the only selection signal we trust. Method
+    lessons banked: select SFT checkpoints by a 200-item answer-survival read (~free), one RL round per data
+    batch, KL 0.3 trust region, and a NaN-Gumbel bug found in the inherited RWR trainer (its exploration had
+    been silently dead — reported to taaha).</p>
+  </div>
+
+  <h2>Training recommendations</h2>
+  <ol class="recs">
+    <li><b>Ship number protection now, before any retraining.</b> Auto-wrapping numerics in <code>&lt;ttc_safe&gt;</code>
+    at the API layer replicates safenum exactly: +22-27 pp on both answerers at equal token budget. This is an
+    inference-time rule, not a model change.</li>
+    <li><b>Train keep-bias for number + label units, not bare numbers.</b> The dominant residual failure (6/10) is a
+    surviving figure orphaned from its row header, segment, or period. Datagen should label the number <i>and</i> its
+    identifying label span as a joint keep-unit (table row header + cell, "Q2 FY24" + figure).</li>
+    <li><b>Add financial tables to training data with structure-preserving targets.</b> Every pre-v7.1 model
+    anti-selects table rows (2-3&times; worse than prose). Train on 10-K/10-Q statement pages where the target
+    keeps whole table rows; FinanceBench-style QA pairs make good supervision for which rows matter.</li>
+    <li><b>Add negative labels for boilerplate.</b> Page furniture, ALL-CAPS headings, "accompanying notes" legalese
+    is the best-surviving content in all configs — budget that should fund percent tokens and table rows.
+    This is free accuracy at fixed retention.</li>
+    <li><b>Protect percent tokens explicitly.</b> Worst-kept numeric class in every model (6-28% in old models,
+    15% even in plain v7.1 @ 0.7); margin/growth questions die here.</li>
+    <li><b>Keep scale words welded to their numbers.</b> v7.1 already keeps million/billion at 90-96% (vs ~20% for
+    the old family) — make this a spec'd invariant, since a bare "1,577" without magnitude is noise.</li>
+    <li><b>Distill the query-aware keep-signal into the next model.</b> OR-fusing the focus model's picks into
+    v7.1 adds +7-11 pp at aggressive settings for ~2 pp of tokens, and the focus model alone answers 16.7% of
+    questions from 0.5% of a full filing. The signal is real and cheap (a second 140M encoder pass) — ship as an
+    ensemble now, distill into one model later.</li>
+    <li><b>Rank models at matched retention, not matched aggressiveness.</b> The knob maps differently per model
+    (0.3 means 87% kept for diverse+code, 43% for bear-4.1); every cross-model conclusion here required the
+    retention axis. Trading data looks unnecessary: the failure is table/number selection on filings, not
+    market-data knowledge.</li>
+  </ol>
+
+  <h2>Experiment registry</h2>
+  <div class="overflow">
+  <table>
+    <caption>Every experiment run 24.07.2026, with stable IDs used in chart labels. Config-name convention:
+    <code>{model}[-{rule}]--{aggressiveness-or-tau}</code>, prefix <code>fd-</code> = full-filing context.
+    Scripts live on branch <code>financebench-check</code>; caches in <code>financebench/compression_cache/</code>;
+    results in <code>financebench/results*/</code>.</caption>
+    <thead><tr><th>ID</th><th>Experiment</th><th>Script / pipeline</th><th>Regime</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>E01</td><td>Harness token-cap fix (1024/200 &rarr; 8000/2000)</td><td>run_benchmark.py, evaluate.py</td><td>—</td><td>done; control 58&rarr;88% (gpt-5-mini)</td></tr>
+      <tr><td>E02</td><td>Old models re-eval (bear-4.1, diverse+code, mb-diverse &times; 0.3/0.5/0.7)</td><td>old caches + Gemini answerer</td><td>oracle</td><td>done</td></tr>
+      <tr><td>E03</td><td>v7.1-rl-max-v2 plain + safenum, both answerers</td><td>precompress_v71.py</td><td>oracle</td><td>done</td></tr>
+      <tr><td>E04</td><td>Keep-rule race: safenum/safectx2/saferow/safeline/safeper/safetab/weld</td><td>precompress_v71.py (9 variants, 1 pass)</td><td>oracle</td><td>done</td></tr>
+      <tr><td>E05</td><td>v7.2-focus (GRPO, step-70 best) plain/safenum/safetab</td><td>precompress_v72_focus.py</td><td>oracle</td><td>done; &asymp; v7.1. At native 2048 ctx the focus-swap probe DROPS to |&Delta;P| 0.032 (was 0.047 at 512) and retentions match bear-v7.2-rl-focus exactly — the GRPO line is query-weak regardless of window; fleet not rerun (would duplicate E15)</td></tr>
+      <tr><td>E06</td><td>bear-4.0-focus-1-ctx2048 stock runner, tau sweep</td><td>precompress_v40_focus.py</td><td>oracle + full</td><td>done; broken serving pipeline diagnosed</td></tr>
+      <tr><td>E07</td><td>Focus serving fixes: sent-max / line-max 10+30% / line-mean / word-top / query-rewrite</td><td>precompress_v40_fix.py</td><td>oracle</td><td>done; line split + rank budget is the fix</td></tr>
+      <tr><td>E08</td><td>FUSE: v7.1 OR 4.0-focus (tau 0.01), &plusmn;safetab</td><td>precompress_fuse.py</td><td>oracle + full</td><td>done</td></tr>
+      <tr><td>E09</td><td>fuse2 grid: v7.1 threshold &times; focus-line budget f10-f90</td><td>precompress_v40_fix.py</td><td>oracle</td><td>done; f70@0.7 = 81.3%</td></tr>
+      <tr><td>E10</td><td>Full-filing control + v7.1 plain/safetab (compresr-style)</td><td>FULLDOC_JSON mode</td><td>full</td><td>done; compression beats baseline +4 pp</td></tr>
+      <tr><td>E11</td><td>Full-filing FUSE-safetab</td><td>precompress_fuse.py fd-</td><td>full</td><td>done</td></tr>
+      <tr><td>E12</td><td>Full-filing focus needle (0.5% retention)</td><td>precompress_v40_focus.py fd-</td><td>full</td><td>done; 16.7% from 600 tokens</td></tr>
+      <tr><td>E13</td><td>Full-filing rules: safenum/saferow/safectx2</td><td>precompress_v71.py fd-</td><td>full</td><td>done; whole family &ge; baseline at 45-69% kept; safectx2@0.7 = 81.3% at 52%</td></tr>
+      <tr><td>E14</td><td>Full-filing fuse2 grid + focusfix</td><td>precompress_v40_fix.py fd-</td><td>full</td><td>caches computing on B200</td></tr>
+      <tr><td>E15</td><td>bear-v7.2-rl-focus raw-logit, standalone + fused with v7.1</td><td>precompress_v72_rlfocus.py</td><td>oracle</td><td>done at native 2048 ctx (512-ctx first run discarded); picks &asymp; v7.1's tokens — verdict survives the window fix</td></tr>
+      <tr><td>E16</td><td>Focused-safetab: rules gated to top-K% focus lines</td><td>precompress_e16_20.py</td><td>oracle + full</td><td>done; WIN in both regimes — oracle 56.7% @ 46%; full-doc 77.3% @ 46% (1.4 pp under baseline at 2.2&times;) and 75.3% @ 33% (3&times;)</td></tr>
+      <tr><td>E17</td><td>Rank-budget v7.1 (top-B% words per doc instead of threshold)</td><td>precompress_e16_20.py</td><td>oracle</td><td>done; FAILED — worse than thresholding at every matched retention (16 vs 26% @ 30%); word-rank scatter destroys local coherence</td></tr>
+      <tr><td>E18</td><td>Forced-drop page furniture + line dedup</td><td>precompress_e16_20.py</td><td>oracle</td><td>done; BACKFIRED — ALL-CAPS detector deleted statement-title headings ("CONSOLIDATED STATEMENTS OF…"), the labels themselves; -9 pp vs safetab</td></tr>
+      <tr><td>E19</td><td>Lexical anchor: force-keep lines sharing &ge;2 content words with the question</td><td>precompress_e16_20.py</td><td>oracle</td><td>done; mild +5.3 pp over bare v7.1@0.7 for +4 pp tokens</td></tr>
+      <tr><td>E20</td><td>Compose E16+E17+E18+E19</td><td>precompress_e16_20.py</td><td>oracle</td><td>done; 32.7% @ 36% — sank with its failed components; retry from validated parts only</td></tr>
+      <tr><td>E21</td><td>dscale-financial-0.5M-s1 (taaha's finance-domain scaling point, 500k train tokens)</td><td>precompress_v71.py, MODEL_NAME arg</td><td>oracle + full</td><td>fd safetab@0.3 s1 = 84.0% @ 71% topped the board, but SEED REPLICATION DEMOTES IT: s1/s2/s3 = 84.0/80.7/78.7 (mean 81.1±2.7) — statistically level with the v7.1-rules family. Domain training at 500k tokens ≈ parity, not superiority; the 16M-scale test remains open.</td></tr>
+      <tr><td>E25</td><td>PROD bear-1.2 reference (live API, full filings, client-split &gt;300k-char docs)</td><td>precompress_prod_bear1.py</td><td>full</td><td>done 25.07 evening: 78.7% @ 80% kept, 82.0% @ 72% (peak, +3.3 over baseline), 80.0% @ 63%. The shipping product beats baseline at 1.4x with zero rules, and the deep points hold: 79.3% @ 49% (0.9), 76.7% @ 41% (0.95) — competitive with the engineered configs across the whole 41-80% range.</td></tr>
+      <tr><td>E26</td><td>taaha ws72 FINAL best (focus-grpo-linear, step 400, best_val 0.534&rarr;0.584 after E22's early pull)</td><td>v8_eval_precompress.py</td><td>full</td><td>done: safetab@0.5 = 78.0% @ 44% — NEW best ~2.3x band point (baseline accuracy); budget33+safetab 78.7% @ 54%; raw pinned budgets below our SFT v8s (64.0 @ 33% vs r9 70.0). RL line + rules and SFT line + budgets are complementary — the wave-3 thesis.</td></tr>
+      <tr><td>E24</td><td>v8-r1 (overnight-trained, warm v7.1, 2048-ctx, clean synthetic finance data, epoch 4 of 15)</td><td>v8_train.py / v8_eval_precompress.py</td><td>full</td><td>FIRST TRANSFER (r1 ep4): 68.0% @ exactly 22% (beats all prior sub-30% configs), 52.7% @ 8.7%, 76.0% @ 48%. ALL 10 RUNS COMPLETE by morning, zero collapses, val-AUPRC band 0.761-0.835 (11-12x prevalence): r9 seed-2 leads 0.835, focal r5 0.831, ettin-400m r8 0.827, cold-start r2 0.803 ≈ warm — data dominates recipe. LEADER EVALS: best raw 3x point v8-r9 budget33 = 70.0% @ 33%; budget33+safetab 77.3% @ 55%. TRANSFER INVERSION found: r9 (val-AUPRC 0.835) scores 56.0% @ budget22 vs early-stopped r1-ep4 68.0% — longer mask-imitation training over-sharpens onto needle-tight labels and hurts real answering. Wave 2 launched (wide-halo masks, prevalence 6.9%→12.9%, 3 runs: w2-140, w2-140-s2, w2-ettin) targeting 85% @ 33%. Prod bear-1.2 full-filing reference series building via API.</td></tr>
+      <tr><td>E22</td><td>bear-ws72 (focus-grpo-linear warm-start, 25.07 overnight)</td><td>precompress_v72_focus.py, MODEL_VOL_PATH arg</td><td>oracle</td><td>done 25.07; v7.1-class; query probe still weak (0.045); one bright spot: safetab@0.5 70.7% @ 58% (+6.7 vs v7.1-safetab@0.7, near CI edge)</td></tr>
+      <tr><td>E28</td><td>Reader swap: champion fd- configs + control answered by gpt-5-mini</td><td>run_benchmark.py, OPENAI_MODEL=gpt-5-mini, results_gpt5mini_fulldoc/</td><td>full</td><td>done 25.07: control 85.3%; dscale-fin safetab@0.3 <b>86.0% @ 71%</b> beats the stronger reader's own full-context control; v7.1 safetab@0.5 84.7% / saferow@0.5 83.3% / ws72fin@0.5 81.3% — config ranking preserved across readers</td></tr>
+      <tr><td>E29</td><td>Fable 5 oracle EXTRACTIVE compressor on the 17 never-answered questions (question-only, no gold; verbatim-line validation)</td><td>fable5_extract.py</td><td>full&rarr;oracle probe</td><td>done 25.07: 17/17 scored, purity 1.00 everywhere, retention 0.2-11%, <b>0 flips</b> (gold-ambig 0/10, needs-comp 0/5, judge-artifact 0/2) — confirms failure forensics: reader/gold/judge failures, not compression failures</td></tr>
+      <tr><td>E30</td><td>Fable 5 oracle ABSTRACTIVE compressor (may restructure/normalize tables; forbidden to compute or answer)</td><td>fable5_abstract.py</td><td>full&rarr;oracle probe</td><td>done 25.07: <b>3/17 flipped</b> (Q14 FCF-conversion, Q23 quick-ratio, Q141 wages%) at 0.6-14% retention, leak-checked — restructuring (labels+units+periods on raw figures) unlocks reader arithmetic that selection alone cannot; motivates E31 labeled-render rule</td></tr>
+      <tr><td>E31</td><td>Heuristic labeled-render (banner = nearest title/units/period above each kept table region) on both champions</td><td>e31_label_render.py</td><td>full</td><td>done 26.07: <b>NEGATIVE</b> — v7.1-safetab@0.5 82.7&rarr;80.7 (+3/&minus;6), dscale-safetab@0.3 84.0&rarr;78.7 (+3/&minus;11), hard-17 untouched. Misattached labels mislead; E30's effect needs correct per-figure table structure, not proximity heuristics</td></tr>
+      <tr><td>E32</td><td>Wave-2 SFT transfer evals (wide-halo masks; w2-140 / w2-140-s2 / w2-ettin-400m + s2 epoch-4)</td><td>v8_train.py / v8_eval_precompress.py</td><td>full</td><td>done 26.07: ettin best (78.7% @ 51%, 60.7% @ 22%); no wave-2 run beat wave-1's 68.0% @ 22%; inversion replicated (ep4 62.0 &gt; full 57.3 at budget22)</td></tr>
+      <tr><td>E33</td><td>v9 RL — RWR with end-to-end answer-survival reward (K=6 masks, KL-to-ref, no judge; NaN-Gumbel bug found+fixed in source trainer)</td><td>v9_rl_prep.py / v9_rwr_train.py</td><td>full</td><td>done 26.07 (round 1): FINAL: <b>kl03 stable ckpt is the champion — 74.0% @ 22% (+6.0 over the wave-1 record, 4.7 pp from control), 75.3% @ 33%, 80.0% @ 55%</b>. Follow-on rounds all resolved negative: iter2/iter3 (same reward data) gained val but lost transfer (71.3 @ 22 — reward-set exploitation); fresh-data round flat (0.71 — 140M lineage saturated); ettin RL gained +15 val but broke on the serving path (60.0 @ 22). One RL step from the right SFT init captured the whole gain. Rewards: LEDGAR 289 / SECQUE 58 regenerated for future rounds</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Full numbers</h2>
+  <div class="overflow">
+  <table>
+    <caption>Accuracy (150 questions per cell; single runs, 95% CI &asymp; &plusmn;4-8 pp). Retention = mean
+    compressed/original tokens. Old-model gpt-5-mini runs from April used broken token caps and are excluded
+    (control was 58% there vs 88% fixed).</caption>
+    <thead><tr><th>Config</th><th>Tokens kept</th><th>gpt-5-mini</th><th>Gemini 3.5 FL</th></tr></thead>
+    <tbody id="tbl"></tbody>
+  </table>
+  </div>
+  <p class="note">Caveats: single runs (repeat-run variance ~&plusmn;3 pp; binomial 95% CI &plusmn;4-8 pp — treat
+  &lt;8 pp deltas as suggestive, not proven); judge is gpt-5-mini in all cells; FinanceBench is the 150-question
+  open release (full set is 10,231, not public); safenum implemented offline as force-keep of digit-bearing words,
+  equivalent to <code>&lt;ttc_safe&gt;</code> wrapping; retention measured with each model's own tokenizer.
+  Compression compute: each cache family derives from a single B200 inference pass (4-85 s; probs computed once,
+  thresholds free).</p>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(svg, tag, attrs) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; }
+const tip = document.getElementById("tip");
+function bindTips(svg) {
+  svg.addEventListener("mousemove", ev => {
+    const t = ev.target.getAttribute && ev.target.getAttribute("data-tip");
+    if (t) { tip.textContent = t; tip.style.display = "block";
+      let x = ev.clientX + 14; if (x + tip.offsetWidth > innerWidth - 8) x = ev.clientX - tip.offsetWidth - 14;
+      tip.style.left = x + "px"; tip.style.top = (ev.clientY - 12) + "px";
+    } else tip.style.display = "none";
+  });
+  svg.addEventListener("mouseleave", () => tip.style.display = "none");
+}
+// 95% binomial CI half-width in percentage points, n = 150
+const ci95 = a => 1.96 * Math.sqrt(a * (100 - a) / 150);
+function whiskV(svg, cx, y, acc, color) {
+  const h = ci95(acc);
+  const yT = y(Math.min(100, acc + h)), yB = y(Math.max(0, acc - h));
+  el(svg, "line", { x1: cx, x2: cx, y1: yT, y2: yB, stroke: color, "stroke-width": 1.4, opacity: 0.5 });
+  [yT, yB].forEach(yy => el(svg, "line", { x1: cx - 3.5, x2: cx + 3.5, y1: yy, y2: yy, stroke: color, "stroke-width": 1.4, opacity: 0.5 }));
+}
+
+// ---- Chart 0: the whole study, one panel per regime ----
+const MASTER = {
+  masterA: { title: "Oracle evidence pages", control: 82.7, pts: [
+    // [family, ret%, acc%, label]
+    ["old", 43, 32.7, "bear-4.1 @0.3"], ["old", 30, 16.7, "bear-4.1 @0.5"], ["old", 13, 6.0, "bear-4.1 @0.7"],
+    ["old", 87, 74.7, "diverse+code @0.3"], ["old", 64, 50.7, "diverse+code @0.5"], ["old", 39, 30.0, "diverse+code @0.7"],
+    ["old", 84, 71.3, "mb-diverse @0.3"], ["old", 59, 42.7, "mb-diverse @0.5"], ["old", 43, 33.3, "mb-diverse @0.7"],
+    ["v71", 47, 48.0, "v7.1 plain @0.3"], ["v71", 38, 38.7, "v7.1 plain @0.5"], ["v71", 30, 26.0, "v7.1 plain @0.7"],
+    ["rules", 65, 71.3, "v7.1 safenum @0.3"], ["rules", 60, 64.0, "v7.1 safenum @0.5"], ["rules", 55, 59.3, "v7.1 safenum @0.7"],
+    ["rules", 74, 71.3, "safectx2 @0.3"], ["rules", 70, 68.0, "safectx2 @0.5"], ["rules", 66, 64.7, "safectx2 @0.7"],
+    ["rules", 66, 70.0, "saferow @0.3"], ["rules", 61, 66.7, "saferow @0.5"], ["rules", 56, 62.0, "saferow @0.7"],
+    ["rules", 67, 70.0, "safeline @0.3"], ["rules", 63, 65.3, "safeline @0.5"], ["rules", 58, 60.7, "safeline @0.7"],
+    ["rules", 65, 70.7, "safeper @0.3"], ["rules", 60, 62.0, "safeper @0.5"], ["rules", 55, 57.3, "safeper @0.7"],
+    ["rules", 66, 70.0, "safetab @0.3"], ["rules", 61, 67.3, "safetab @0.5"], ["rules", 56, 64.0, "safetab @0.7"],
+    ["rules", 47, 48.7, "weld @0.3"], ["rules", 38, 37.3, "weld @0.5"], ["rules", 31, 20.7, "weld @0.7"],
+    ["v72", 49, 42.0, "v7.2-focus plain @0.3"], ["v72", 41, 39.3, "v7.2-focus plain @0.5"], ["v72", 32, 24.0, "v7.2-focus plain @0.7"],
+    ["v72", 66, 71.3, "v7.2 safenum @0.3"], ["v72", 61, 66.7, "v7.2 safenum @0.5"], ["v72", 55, 58.0, "v7.2 safenum @0.7"],
+    ["v72", 67, 70.0, "v7.2 safetab @0.3"], ["v72", 62, 66.7, "v7.2 safetab @0.5"], ["v72", 56, 62.0, "v7.2 safetab @0.7"],
+    ["v72", 46, 47.3, "E15 v7.2-rlf plain @0.3 (2048ctx)"], ["v72", 36, 33.3, "E15 v7.2-rlf plain @0.5 (2048ctx)"], ["v72", 26, 21.3, "E15 v7.2-rlf plain @0.7 (2048ctx)"],
+    ["v72", 67, 70.7, "E15 v7.2-rlf safetab @0.3 (2048ctx)"], ["v72", 61, 69.3, "E15 v7.2-rlf safetab @0.5 (2048ctx)"], ["v72", 54, 58.7, "E15 v7.2-rlf safetab @0.7 (2048ctx)"],
+    ["v72", 51, 44.7, "E15 v7.1∪v7.2-rlf @0.3 (2048ctx)"], ["v72", 41, 34.7, "E15 v7.1∪v7.2-rlf @0.5 (2048ctx)"], ["v72", 33, 32.0, "E15 v7.1∪v7.2-rlf @0.7 (2048ctx)"],
+    ["v72", 69, 73.3, "E15 v7.1∪v7.2-rlf safetab @0.3 (2048ctx)"], ["v72", 63, 66.0, "E15 v7.1∪v7.2-rlf safetab @0.5 (2048ctx)"], ["v72", 57, 65.3, "E15 v7.1∪v7.2-rlf safetab @0.7 (2048ctx)"],
+    ["focus", 3.6, 16.7, "focus stock tau .01"], ["focus", 1.9, 14.0, "focus stock tau .03"], ["focus", 1.2, 12.0, "focus stock tau .15"],
+    ["focus", 40, 39.3, "focusfix sent-max 10%"], ["focus", 10, 20.0, "focusfix line-max 10%"],
+    ["focus", 10, 21.3, "focusfix line-mean 10%"], ["focus", 10, 22.0, "focusfix word-top 10%"],
+    ["focus", 10, 18.7, "focusfix rewrite 10%"], ["focus", 30, 53.3, "focusfix line-max 30%", 1],
+    ["fusion", 49, 49.3, "FUSE @0.3"], ["fusion", 40, 46.0, "FUSE @0.5"], ["fusion", 33, 36.7, "FUSE @0.7"],
+    ["fusion", 67, 73.3, "FUSE-safetab @0.3"], ["fusion", 62, 68.0, "FUSE-safetab @0.5"], ["fusion", 58, 64.7, "FUSE-safetab @0.7"],
+    ["fusion", 64, 72.7, "fuse2 f10 @0.5"], ["fusion", 59, 72.0, "fuse2 f10 @0.7"],
+    ["fusion", 69, 74.7, "fuse2 f30 @0.5"], ["fusion", 66, 76.7, "fuse2 f30 @0.7", 1],
+    ["fusion", 72, 78.0, "fuse2 f50 @0.7", 1], ["fusion", 79, 81.3, "fuse2 f70 @0.7", 1],
+    ["fusion", 86, 79.3, "fuse2 f90 @0.7"],
+    ["fusion", 46, 56.7, "E16b focused-safetab v7.1@0.5+top30", 1],
+    ["fusion", 40, 52.0, "E16 focused-safetab v7.1@0.7+top30"],
+    ["fusion", 34, 34.7, "E16 focused-safetab v7.1@0.7+top10"],
+    ["v71", 30, 16.0, "E17 rank-budget 30% (FAILED vs threshold)"],
+    ["v71", 40, 32.0, "E17 rank-budget 40% (FAILED)"],
+    ["v71", 50, 41.3, "E17 rank-budget 50% (FAILED)"],
+    ["rules", 61, 67.3, "E17b rank-budget 40%+safetab (tie w/ safetab)"],
+    ["rules", 59, 58.0, "E18 drop-furniture @0.3 (BACKFIRED: deleted statement titles)"],
+    ["rules", 55, 56.0, "E18 drop-furniture @0.5 (BACKFIRED)"],
+    ["rules", 34, 31.3, "E19 lexical anchor @0.7"],
+    ["fusion", 36, 32.7, "E20 compose (dragged down by E17+E18)"],
+    ["old", 73, 61.3, "E21 dscale-financial-0.5M plain @0.3"], ["old", 57, 48.7, "E21 dscale-financial-0.5M plain @0.5"], ["old", 40, 33.3, "E21 dscale-financial-0.5M plain @0.7"],
+    ["old", 84, 75.3, "E21 dscale-financial-0.5M safetab @0.3"], ["old", 76, 75.3, "E21 dscale-financial-0.5M safetab @0.5"], ["old", 67, 69.3, "E21 dscale-financial-0.5M safetab @0.7"],
+    ["v72", 43, 41.3, "E22 ws72 plain @0.3"], ["v72", 32, 30.0, "E22 ws72 plain @0.5"], ["v72", 20, 12.7, "E22 ws72 plain @0.7"],
+    ["v72", 65, 66.7, "E22 ws72 safetab @0.3"], ["v72", 58, 70.7, "E22 ws72 safetab @0.5"], ["v72", 52, 50.0, "E22 ws72 safetab @0.7"],
+  ]},
+  masterB: { title: "Full filings (~121k tokens)", control: 78.7, pts: [
+    ["v71", 51, 72.7, "v7.1 plain @0.3"], ["v71", 40, 70.0, "v7.1 plain @0.5"], ["v71", 27, 62.0, "v7.1 plain @0.7"],
+    ["rules", 65, 82.0, "v7.1 safetab @0.3"], ["rules", 57, 82.7, "v7.1 safetab @0.5", 1], ["rules", 47, 76.0, "v7.1 safetab @0.7"],
+    ["fusion", 65, 77.3, "FUSE-safetab @0.3"], ["fusion", 57, 82.7, "FUSE-safetab @0.5"], ["fusion", 47, 80.0, "FUSE-safetab @0.7", 1],
+    ["focus", 0.5, 16.7, "focus stock tau .01 (needle)"],
+    ["rules", 64, 80.7, "E13 fd safenum @0.3"], ["rules", 56, 78.0, "E13 fd safenum @0.5"], ["rules", 45, 76.0, "E13 fd safenum @0.7"],
+    ["rules", 65, 81.3, "E13 fd saferow @0.3"], ["rules", 57, 82.7, "E13 fd saferow @0.5"], ["rules", 47, 76.7, "E13 fd saferow @0.7"],
+    ["rules", 69, 81.3, "E13 fd safectx2 @0.3"], ["rules", 62, 80.7, "E13 fd safectx2 @0.5"], ["rules", 52, 81.3, "E13 fd safectx2 @0.7", 1],
+    ["fusion", 46, 77.3, "E16b fd focused-safetab (2.2x)", 1],
+    ["fusion", 33, 75.3, "E16 fd focused-safetab (3.0x)", 1],
+    ["fusion", 62, 77.3, "fd fuse2f30-safetab @0.7"], ["fusion", 72, 78.0, "fd fuse2f50-safetab @0.7"],
+    ["fusion", 83, 80.7, "fd fuse2f70-safetab @0.7 (line-budget fusion: inferior on full docs)"],
+    ["rules", 56, 79.3, "E17b fd budget+safetab"],
+    ["rules", 41, 69.3, "E19 fd lexical anchor"],
+    ["focus", 30, 66.0, "fd focusfix line-max 30%"],
+    ["old", 71, 84.0, "E21 fd dscale-fin safetab @0.3 — best single fd config", 1],
+    ["old", 57, 80.0, "E21 fd dscale-fin safetab @0.7"], ["old", 64, 78.7, "E21 fd dscale-fin safetab @0.5"],
+    ["old", 61, 74.0, "E21 fd dscale-fin plain @0.3"], ["old", 50, 74.0, "E21 fd dscale-fin plain @0.5"], ["old", 40, 68.0, "E21 fd dscale-fin plain @0.7"],
+    ["v72", 65, 78.7, "E22 fd ws72 safetab @0.3"], ["v72", 52, 76.7, "E22 fd ws72 safetab @0.5"], ["v72", 38, 69.3, "E22 fd ws72 safetab @0.7"],
+    ["v72", 50, 76.7, "E22 fd ws72 safenum @0.5"], ["v72", 36, 69.3, "E22 fd ws72 safenum @0.7"],
+    ["v72", 50, 72.0, "E22 fd ws72 plain @0.3"], ["v72", 31, 57.3, "E22 fd ws72 plain @0.5"],
+    ["v72", 12, 37.3, "E22 fd ws72 plain @0.7 — deepest useful point (8.3x)", 1],
+    ["fusion", 64, 76.7, "E23 fd composeval @0.3"], ["fusion", 56, 76.0, "E23 fd composeval @0.5"], ["fusion", 46, 74.7, "E23 fd composeval @0.7"],
+    ["v8", 22, 68.0, "E24 v8-r1 ep4 budget22 — 68% at exactly 22%", 1],
+    ["v8", 8.7, 52.7, "E24 v8-r1 ep4 thr 0.1", 1],
+    ["v8", 48, 76.0, "E24 v8-r1 ep4 budget22+safetab"],
+    ["v8", 39, 68.0, "E24 v8-r1 ep4 safetab thr 0.1"], ["v8", 34, 67.3, "E24 v8-r1 ep4 safetab thr 0.3"],
+    ["v8", 2.1, 28.0, "E24 v8-r1 ep4 thr 0.3"],
+    ["v8", 33, 70.0, "E24 v8-r9 budget33 — best raw 3x point", 1],
+    ["v8", 33, 68.7, "E24 v8-r4-512 budget33"], ["v8", 33, 64.7, "E24 v8-r8-ettin budget33"],
+    ["v8", 55, 77.3, "E24 v8-r9 budget33+safetab"], ["v8", 51, 76.0, "E24 v8-r8-ettin budget33+safetab"],
+    ["v8", 22, 56.0, "E24 v8-r9 budget22 (transfer INVERSION vs r1-ep4 68.0)"],
+    ["v8", 22, 62.7, "E24 v8-r4-512 budget22"], ["v8", 22, 61.3, "E24 v8-r8-ettin budget22"],
+    ["v71", 80, 78.7, "PROD bear-1.2 @0.3 (API reference)"],
+    ["v71", 72, 82.0, "PROD bear-1.2 @0.5 (API reference)", 1],
+    ["v71", 63, 80.0, "PROD bear-1.2 @0.7 (API reference)"],
+    ["v71", 49, 79.3, "PROD bear-1.2 @0.9 (API reference)", 1],
+    ["v71", 41, 76.7, "PROD bear-1.2 @0.95 (API reference)"],
+    ["v72", 44, 78.0, "E26 ws72-final safetab @0.5 — baseline at 2.3x", 1],
+    ["v72", 54, 78.7, "E26 ws72-final budget33+safetab"],
+    ["v72", 33, 64.0, "E26 ws72-final budget33"], ["v72", 22, 56.0, "E26 ws72-final budget22"],
+    ["v72", 44, 66.0, "E26 ws72-final plain @0.3"], ["v72", 18, 48.7, "E26 ws72-final plain @0.5"],
+    ["old", 75, 80.7, "E21 fd dscale-fin s2 safetab @0.3 (seed repl.)"],
+    ["old", 71, 78.7, "E21 fd dscale-fin s3 safetab @0.3 (seed repl.)"],
+    ["v72", 55, 80.0, "E27 gen3 (mid-training) budget33+safetab"],
+    ["v72", 40, 74.7, "E27 gen3 safetab @0.5"], ["v72", 33, 61.3, "E27 gen3 budget33"],
+    ["v72", 57, 80.0, "E15fd v7.2-rlf safetab @0.5"], ["v72", 39, 66.0, "E15fd v7.2-rlf plain @0.5"],
+    ["v8", 22, 62.0, "E32 w2-140s2ep4 budget22 (SFT; the RL init)"],
+    ["v8", 33, 64.7, "E32 w2-140s2ep4 budget33"],
+    ["v8", 22, 60.7, "E32 w2-ettin budget22"], ["v8", 33, 66.0, "E32 w2-ettin budget33"],
+    ["v8", 42, 75.3, "E32 w2-ettin budget22+safetab"],
+    ["v8", 51, 78.7, "E32 w2-ettin budget33+safetab — wave-2 SFT best", 1],
+    ["v8", 22, 74.0, "E33 v9-RL kl03-stable budget22 — 4.5x record, 4.7 pp from control", 1],
+    ["v8", 33, 75.3, "E33 v9-RL kl03-stable budget33"],
+    ["v8", 55, 80.0, "E33 v9-RL kl03-stable budget33+safetab"],
+    ["v8", 22, 73.3, "E33 v9-RL s2ep4 unstable-peak budget22 (+11.3 over its init)"],
+    ["v8", 33, 76.0, "E33 v9-RL s2ep4 budget33 — NEW 3x record", 1],
+    ["v8", 47, 77.3, "E33 v9-RL s2ep4 budget22+safetab"],
+    ["v8", 55, 81.3, "E33 v9-RL s2ep4 budget33+safetab", 1],
+    ["v8", 33, 72.7, "E33 v9-RL s2best budget33"],
+    ["v8", 22, 71.3, "E33 v9-RL iter2 budget22 (round-2 same data: reward-set exploitation, -2.7 vs kl03)"],
+    ["v8", 55, 79.3, "E33 v9-RL iter2 budget33+safetab"],
+    ["v8", 22, 60.0, "E33 v9-RL ettin budget22 (val +15 did NOT transfer)"],
+    ["v8", 29, 72.7, "E33 v9-RL ettin safetab @0.3"],
+    ["v8", 51, 78.0, "E33 v9-RL ettin budget33+safetab"],
+  ]},
+  masterC: { title: "Full filings — gpt-5-mini answerer (E28; separate reader, own control)", control: 85.3, pts: [
+    ["old", 71, 86.0, "5mini: dscale-fin safetab @0.3 — beats gpt-5-mini's own full-context control", 1],
+    ["rules", 57, 84.7, "5mini: v7.1 safetab @0.5", 1],
+    ["rules", 57, 83.3, "5mini: v7.1 saferow @0.5"],
+    ["v72", 44, 81.3, "5mini: ws72-final safetab @0.5", 1],
+  ]},
+};
+const FAMC = { old: "var(--s1)", v71: "var(--s4)", rules: "var(--s5)", v72: "var(--s3)", focus: "var(--s2)", fusion: "var(--s6)", v8: "var(--s7)" };
+// masterB colors by OWNERSHIP instead of family: otso = models trained this
+// campaign (v8 SFT + v9 RL) AND any config using otso's serving inventions
+// (keep-rules safe*/weld, budget pinning, fusion, focused gating, label-render)
+// on taaha's models; taaha = his models served plain.
+const OWNC = { taaha: "var(--s2)", otso: "var(--s7)" };
+const OTSO_SERVE = /safe|weld|budget|fuse|labelrender|label-render|focused|rank-budget|lexical|compose/i;
+const ownerOf = (fam, label) => (fam === "v8" || OTSO_SERVE.test(label || "")) ? "otso" : "taaha";
+Object.entries(MASTER).forEach(([id, cfg]) => {
+  const colorOf = (fam, label) => id === "masterB" ? OWNC[ownerOf(fam, label)] : FAMC[fam];
+  const svg = document.getElementById(id);
+  const W = 884, H = 440, M = { t: 30, r: 40, b: 42, l: 44 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const x = r => M.l + ((100 - r) / 100) * iw;
+  const y = v => M.t + (1 - v / 95) * ih;
+  el(svg, "text", { x: M.l, y: 16, "font-size": 12.5, "font-weight": 600, fill: "var(--ink-2)" }).textContent = cfg.title;
+  if (id === "masterB") {
+    el(svg, "circle", { cx: W - 400, cy: 12, r: 4.5, fill: OWNC.taaha });
+    el(svg, "text", { x: W - 392, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "taaha's models, plain";
+    el(svg, "circle", { cx: W - 262, cy: 12, r: 4.5, fill: OWNC.otso });
+    el(svg, "text", { x: W - 254, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "otso's (v8/v9 + rules/budgets/fusion serving)";
+  }
+  for (let v = 0; v <= 90; v += 15) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)" }).textContent = v + "%";
+  }
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(cfg.control), y2: y(cfg.control), stroke: "var(--muted)", "stroke-width": 2, "stroke-dasharray": "5 4" });
+  el(svg, "text", { x: M.l + 4, y: y(cfg.control) - 5, "font-size": 10.5, fill: "var(--muted)" }).textContent = "control " + cfg.control + "%";
+  for (let r = 100; r >= 0; r -= 25) {
+    el(svg, "text", { x: x(r), y: H - M.b + 16, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)" }).textContent = r + "%";
+  }
+  el(svg, "text", { x: M.l + iw / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)" }).textContent = "tokens kept (more compression →)";
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  // series lines: group points by config series (label minus its sweep suffix),
+  // fuse2 budget sweep grouped by v7.1 threshold so f10->f90 connect
+  const seriesOf = label => {
+    let base = label.replace(/\s+[—-]{1,2}\s+.*$/, "").replace(/\s*\(.*\)\s*$/, "").trim();
+    let m = base.match(/^fuse2 f\d+ @(0\.\d+)$/);
+    if (m) return "fuse2 sweep @" + m[1];
+    return base.replace(/ @0\.\d+$/, "").replace(/ tau .+$/, " tau-sweep")
+               .replace(/ thr 0\.\d+$/, " thr-sweep")
+               .replace(/^(focusfix line-max) \d+%$/, "$1")
+               .replace(/^(E\d+ (?:fd )?[\w.∪-]+(?: safetab| safenum| plain| budget\d+(?:\+safetab)?)?).*$/, "$1");
+  };
+  const groups = {};
+  cfg.pts.forEach(p => (groups[seriesOf(p[3])] ??= []).push(p));
+  Object.values(groups).forEach(pts => {
+    if (pts.length < 2) return;
+    const sorted = [...pts].sort((a, b) => b[1] - a[1]);
+    el(svg, "path", { d: sorted.map((p, i) => (i ? "L" : "M") + x(p[1]) + " " + y(p[2])).join(" "),
+      fill: "none", stroke: colorOf(sorted[0][0], sorted[0][3]), "stroke-width": 1.6, opacity: 0.55,
+      "class": "master-line", "stroke-linejoin": "round" });
+  });
+  cfg.pts.forEach(([fam, ret, acc, label, star]) => {
+    el(svg, "circle", { cx: x(ret), cy: y(acc), r: star ? 5.5 : 4.5, fill: colorOf(fam, label),
+      stroke: "var(--surface)", "stroke-width": 1.5, opacity: star ? 1 : 0.85,
+      "data-tip": label + "\ntokens kept " + ret + "%\naccuracy " + acc + "% ± " + ci95(acc).toFixed(1) });
+    if (star) {
+      el(svg, "text", { x: x(ret) + 8, y: y(acc) - 6, "font-size": 10, fill: "var(--ink-2)" }).textContent = label;
+    }
+  });
+  bindTips(svg);
+});
+// line toggle (default: on)
+const _lt = document.getElementById("linetoggle");
+let _linesOn = true;
+_lt.addEventListener("click", () => {
+  _linesOn = !_linesOn;
+  _lt.textContent = "Lines: " + (_linesOn ? "on" : "off");
+  document.querySelectorAll(".master-line").forEach(p => p.style.display = _linesOn ? "" : "none");
+});
+
+// ---- Chart 1: accuracy vs retention, two panels ----
+const FAM = {
+  "bear-4.1": "var(--s1)", "diverse+code": "var(--s2)", "mb-diverse": "var(--s3)",
+  "v7.1 plain": "var(--s4)", "v7.1 safenum": "var(--s5)",
+};
+const PANELS = [
+  { id: "accA", title: "gpt-5-mini (fixed caps)", control: 88.0, series: {
+    "v7.1 plain":   [[46,54.7],[38,50.7],[31,45.3]],
+    "v7.1 safenum": [[66,77.3],[61,78.0],[56,76.7]] } },
+  { id: "accB", title: "Gemini 3.5 Flash-Lite", control: 82.7, series: {
+    "bear-4.1":     [[43,32.7],[30,16.7],[13,6.0]],
+    "diverse+code": [[87,74.7],[64,50.7],[39,30.0]],
+    "mb-diverse":   [[84,71.3],[59,42.7],[43,33.3]],
+    "v7.1 plain":   [[46,39.3],[38,40.0],[31,25.3]],
+    "v7.1 safenum": [[66,66.7],[61,66.7],[56,58.7]] } },
+];
+const AGGRS = [0.3, 0.5, 0.7];
+PANELS.forEach(p => {
+  const svg = document.getElementById(p.id);
+  const W = 450, H = 330, M = { t: 26, r: 14, b: 40, l: 40 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const x = r => M.l + ((100 - r) / 100) * iw;
+  const y = v => M.t + (1 - v / 95) * ih;
+  el(svg, "text", { x: M.l, y: 14, "font-size": 12, "font-weight": 600, fill: "var(--ink-2)" }).textContent = p.title;
+  for (let v = 0; v <= 90; v += 15) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)", style: "font-variant-numeric:tabular-nums" }).textContent = v + "%";
+  }
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(p.control), y2: y(p.control), stroke: "var(--muted)", "stroke-width": 2, "stroke-dasharray": "5 4" });
+  el(svg, "text", { x: M.l + 4, y: y(p.control) - 5, "font-size": 10.5, fill: "var(--muted)" }).textContent = "control " + p.control + "%";
+  for (let r = 100; r >= 0; r -= 25) {
+    el(svg, "text", { x: x(r), y: H - M.b + 16, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)", style: "font-variant-numeric:tabular-nums" }).textContent = r + "%";
+  }
+  el(svg, "text", { x: M.l + iw / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)" }).textContent = "tokens kept (more compression →)";
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  Object.entries(p.series).forEach(([name, pts]) => {
+    const c = FAM[name];
+    el(svg, "path", { d: pts.map((q, i) => (i ? "L" : "M") + x(q[0]) + " " + y(q[1])).join(" "), fill: "none", stroke: c, "stroke-width": 2, "stroke-linejoin": "round" });
+    pts.forEach((q, i) => {
+      whiskV(svg, x(q[0]), y, q[1], c);
+      el(svg, "circle", { cx: x(q[0]), cy: y(q[1]), r: 4, fill: c, stroke: "var(--surface)", "stroke-width": 2,
+        "data-tip": name + "\naggressiveness " + AGGRS[i] + "\ntokens kept " + q[0] + "%\naccuracy " + q[1] + "% ± " + ci95(q[1]).toFixed(1) });
+    });
+  });
+  bindTips(svg);
+});
+const LBL = [
+  ["accA", [["v7.1 safenum", 66, 77.3, -10], ["v7.1 plain", 46, 54.7, -10]]],
+  ["accB", [["diverse+code", 87, 74.7, -10], ["v7.1 safenum", 61, 66.7, 18], ["v7.1 plain", 38, 40.0, -10], ["bear-4.1", 13, 6.0, -10]]],
+];
+LBL.forEach(([id, ls]) => {
+  const svg = document.getElementById(id);
+  const M = { l: 40, r: 14, t: 26, b: 40 }, iw = 450 - M.l - M.r, ih = 330 - M.t - M.b;
+  ls.forEach(([name, r, v, dy]) => {
+    el(svg, "text", { x: M.l + ((100 - r) / 100) * iw + 6, y: M.t + (1 - v / 95) * ih + dy, "font-size": 10.5, fill: "var(--ink-2)" }).textContent = name;
+  });
+});
+
+// ---- Chart 2: category heatmap @ 0.5 ----
+const CATS = ["money", "percent", "number-other", "scale-units", "fin-terms", "capitalized", "boiler-ish other", "stopwords"];
+const CATKEY = ["money", "percent", "number-other", "scale-units", "fin-terms", "capitalized", "other", "stopwords"];
+const HEAT = {
+  "bear-4.1":       {money:.32, percent:.17, "number-other":.27, "scale-units":.20, "fin-terms":.29, capitalized:.28, other:.10, stopwords:0},
+  "diverse+code":   {money:.66, percent:.28, "number-other":.47, "scale-units":.25, "fin-terms":.55, capitalized:.48, other:.25, stopwords:.01},
+  "mb-diverse":     {money:.54, percent:.28, "number-other":.45, "scale-units":.24, "fin-terms":.45, capitalized:.45, other:.24, stopwords:.01},
+  "v7.1 plain":     {money:.51, percent:.36, "number-other":.48, "scale-units":.95, "fin-terms":.54, capitalized:.72, other:.53, stopwords:0},
+  "v7.1 safenum":   {money:1.0, percent:.99, "number-other":1.0, "scale-units":.95, "fin-terms":.54, capitalized:.72, other:.53, stopwords:0},
+};
+(() => {
+  const svg = document.getElementById("heat");
+  const rows = Object.keys(HEAT), W = 884, M = { l: 118, t: 34, r: 10 };
+  const cw = (W - M.l - M.r) / CATS.length, ch = 44;
+  const ramp = v => v <= 0.01 ? "var(--band)" : v < .18 ? "var(--seq100)" : v < .32 ? "var(--seq200)" : v < .46 ? "var(--seq300)" : v < .60 ? "var(--seq400)" : v < .74 ? "var(--seq500)" : v < .88 ? "var(--seq600)" : "var(--seq700)";
+  CATS.forEach((c, j) => el(svg, "text", { x: M.l + j * cw + cw / 2, y: 20, "text-anchor": "middle", "font-size": 10.5, fill: "var(--ink-2)" }).textContent = c);
+  rows.forEach((r, i) => {
+    el(svg, "text", { x: M.l - 8, y: M.t + i * ch + ch / 2 + 4, "text-anchor": "end", "font-size": 11, fill: "var(--ink-2)" }).textContent = r;
+    CATKEY.forEach((ck, j) => {
+      const v = HEAT[r][ck];
+      el(svg, "rect", { x: M.l + j * cw + 1, y: M.t + i * ch + 1, width: cw - 2, height: ch - 2, rx: 3, fill: ramp(v),
+        "data-tip": r + " · " + CATS[j] + "\nkeep rate " + Math.round(v * 100) + "% @ aggr 0.5" });
+      el(svg, "text", { x: M.l + j * cw + cw / 2, y: M.t + i * ch + ch / 2 + 4, "text-anchor": "middle", "font-size": 10.5, "pointer-events": "none",
+        fill: v >= 0.46 ? "#ffffff" : "var(--ink)", style: "font-variant-numeric:tabular-nums" }).textContent = Math.round(v * 100);
+    });
+  });
+  bindTips(svg);
+})();
+
+// ---- Chart 3: line-class survival bars @ 0.5 ----
+const LINECLS = [
+  ["bear-4.1", .106, .232, .452], ["diverse+code", .212, .539, .587], ["mb-diverse", .221, .447, .572],
+  ["v7.1 plain", .452, .417, .689], ["v7.1 safenum", .569, .747, .916],
+];
+(() => {
+  const svg = document.getElementById("lines");
+  const W = 884, H = 290, M = { l: 40, t: 14, b: 34, r: 10 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const y = v => M.t + (1 - v) * ih;
+  for (let v = 0; v <= 1; v += 0.25) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)" }).textContent = Math.round(v * 100) + "%";
+  }
+  const gw = iw / LINECLS.length, bw = Math.min(38, (gw - 30) / 3);
+  const cols = ["var(--s1)", "var(--s2)", "var(--s3)"], names = ["table rows", "prose", "boilerplate"];
+  LINECLS.forEach(([m, ...vals], g) => {
+    const cx = M.l + g * gw + gw / 2;
+    vals.forEach((v, k) => {
+      const bx = cx + (k - 1) * (bw + 2) - bw / 2;
+      el(svg, "path", { d: `M${bx} ${y(0)} V${y(v) + 4} Q${bx} ${y(v)} ${bx + 4} ${y(v)} H${bx + bw - 4} Q${bx + bw} ${y(v)} ${bx + bw} ${y(v) + 4} V${y(0)} Z`,
+        fill: cols[k], "data-tip": m + " · " + names[k] + "\n" + Math.round(v * 100) + "% of line content survives @ aggr 0.5" });
+    });
+    el(svg, "text", { x: cx, y: H - M.b + 18, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-2)" }).textContent = m;
+  });
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  bindTips(svg);
+})();
+
+// ---- Chart 4: gold-figure drop linkage ----
+const LINK = [
+  ["gpt · 0.3", 83, 32], ["gpt · 0.5", 78, 43], ["gpt · 0.7", 77, 53],
+  ["Gemini · 0.3", 70, 21], ["Gemini · 0.5", 63, 38], ["Gemini · 0.7", 64, 47],
+];
+(() => {
+  const svg = document.getElementById("link");
+  const W = 884, H = 270, M = { l: 40, t: 14, b: 34, r: 10 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const y = v => M.t + (1 - v / 100) * ih;
+  for (let v = 0; v <= 100; v += 25) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)" }).textContent = v + "%";
+  }
+  const gw = iw / LINK.length, bw = Math.min(44, (gw - 26) / 2);
+  LINK.forEach(([g, errv, okv], i) => {
+    const cx = M.l + i * gw + gw / 2;
+    [[errv, "var(--s2)", "among induced errors"], [okv, "var(--s1)", "among stayed-correct"]].forEach(([v, c, lab], k) => {
+      const bx = cx + (k - 0.5) * (bw + 2) - bw / 2;
+      el(svg, "path", { d: `M${bx} ${y(0)} V${y(v) + 4} Q${bx} ${y(v)} ${bx + 4} ${y(v)} H${bx + bw - 4} Q${bx + bw} ${y(v)} ${bx + bw} ${y(v) + 4} V${y(0)} Z`,
+        fill: c, "data-tip": g + " · " + lab + "\ngold figure dropped in " + v + "% of contexts" });
+    });
+    el(svg, "text", { x: cx, y: H - M.b + 18, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-2)" }).textContent = g;
+  });
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  bindTips(svg);
+})();
+
+// ---- Chart 5: rescue by question type ----
+const RESCUE = [
+  ["metrics · gpt", 30, 4], ["domain · gpt", 12, 5], ["novel · gpt", 18, 11],
+  ["metrics · Gem", 34, 10], ["domain · Gem", 20, 9], ["novel · Gem", 15, 6],
+];
+(() => {
+  const svg = document.getElementById("rescue");
+  const W = 884, H = 270, M = { l: 40, t: 14, b: 34, r: 10 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const y = v => M.t + (1 - v / 40) * ih;
+  for (let v = 0; v <= 40; v += 10) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)" }).textContent = v;
+  }
+  const gw = iw / RESCUE.length, bw = Math.min(44, (gw - 26) / 2);
+  RESCUE.forEach(([g, plainv, safev], i) => {
+    const cx = M.l + i * gw + gw / 2;
+    [[plainv, "var(--s4)", "plain v7.1"], [safev, "var(--s5)", "+ force-keep numbers"]].forEach(([v, c, lab], k) => {
+      const bx = cx + (k - 0.5) * (bw + 2) - bw / 2;
+      el(svg, "path", { d: `M${bx} ${y(0)} V${y(v) + 4} Q${bx} ${y(v)} ${bx + 4} ${y(v)} H${bx + bw - 4} Q${bx + bw} ${y(v)} ${bx + bw} ${y(v) + 4} V${y(0)} Z`,
+        fill: c, "data-tip": g + " · " + lab + "\n" + v + " induced errors @ aggr 0.5" });
+    });
+    el(svg, "text", { x: cx, y: H - M.b + 18, "text-anchor": "middle", "font-size": 11, fill: "var(--ink-2)" }).textContent = g;
+  });
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  bindTips(svg);
+})();
+
+// ---- Chart 6: keep-rule race (horizontal bars + CI whiskers) ----
+const RACE = [
+  ["FUSE-safetab", 68.0, 62], ["safectx2", 68.0, 70], ["safetab", 67.3, 61],
+  ["saferow", 66.7, 61], ["safeline", 65.3, 63], ["safenum", 64.0, 60],
+  ["safeper", 62.0, 60], ["FUSE (plain OR focus)", 46.0, 40],
+  ["plain", 38.7, 38], ["weld", 37.3, 38],
+];
+(() => {
+  const svg = document.getElementById("race");
+  const W = 884, M = { l: 170, t: 8, r: 160 };
+  const iw = W - M.l - M.r, rh = 34, bh = 20;
+  const x = v => M.l + (v / 85) * iw;
+  RACE.forEach(([name, acc, ret], i) => {
+    const yy = M.t + i * rh;
+    el(svg, "text", { x: M.l - 8, y: yy + bh / 2 + 4, "text-anchor": "end", "font-size": 11.5, fill: "var(--ink-2)" }).textContent = name;
+    el(svg, "path", { d: `M${M.l} ${yy} H${x(acc) - 4} Q${x(acc)} ${yy} ${x(acc)} ${yy + 4} V${yy + bh - 4} Q${x(acc)} ${yy + bh} ${x(acc) - 4} ${yy + bh} H${M.l} Z`,
+      fill: "var(--s1)", "data-tip": name + "\naccuracy " + acc + "% ± " + ci95(acc).toFixed(1) + "\ntokens kept " + ret + "% @ aggr 0.5" });
+    const h = ci95(acc), cy = yy + bh / 2;
+    el(svg, "line", { x1: x(acc - h), x2: x(acc + h), y1: cy, y2: cy, stroke: "var(--ink-2)", "stroke-width": 1.4, opacity: 0.6 });
+    [x(acc - h), x(acc + h)].forEach(xx => el(svg, "line", { x1: xx, x2: xx, y1: cy - 4, y2: cy + 4, stroke: "var(--ink-2)", "stroke-width": 1.4, opacity: 0.6 }));
+    el(svg, "text", { x: x(acc + h) + 6, y: cy + 4, "font-size": 11, fill: "var(--ink-2)", style: "font-variant-numeric:tabular-nums" }).textContent = acc.toFixed(1) + "% · " + ret + "% kept";
+  });
+  const axisY = M.t + RACE.length * rh;
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: axisY, y2: axisY, stroke: "var(--axis)", "stroke-width": 1 });
+  for (let v = 0; v <= 80; v += 20) {
+    el(svg, "text", { x: x(v), y: axisY + 16, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)" }).textContent = v + "%";
+  }
+  bindTips(svg);
+})();
+
+// ---- Chart 7: full documents (+ CI whiskers) ----
+(() => {
+  const svg = document.getElementById("fdchart");
+  const W = 884, H = 330, M = { t: 16, r: 190, b: 40, l: 44 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const x = r => M.l + ((100 - r) / 100) * iw;
+  const y = v => M.t + (1 - v / 95) * ih;
+  for (let v = 0; v <= 90; v += 15) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)" }).textContent = v + "%";
+  }
+  const cB = ci95(78.7);
+  el(svg, "rect", { x: M.l, y: y(78.7 + cB), width: iw, height: y(78.7 - cB) - y(78.7 + cB), fill: "var(--band)" });
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(78.7), y2: y(78.7), stroke: "var(--muted)", "stroke-width": 2, "stroke-dasharray": "5 4" });
+  el(svg, "text", { x: M.l + iw + 8, y: y(78.7) + 4, "font-size": 10.5, fill: "var(--muted)" }).textContent = "control 78.7% (band = 95% CI)";
+  for (let r = 100; r >= 0; r -= 25) {
+    el(svg, "text", { x: x(r), y: H - M.b + 16, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)" }).textContent = r + "%";
+  }
+  el(svg, "text", { x: M.l + iw / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)" }).textContent = "tokens kept (more compression →)";
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  const FD = [
+    ["v7.1 plain", "var(--s4)", [[51, 72.7], [40, 70.0], [27, 62.0]]],
+    ["v7.1 + safetab", "var(--s5)", [[65, 82.0], [57, 82.7], [47, 76.0]]],
+    ["FUSE + safetab", "var(--s6)", [[65, 77.3], [57, 82.7], [47, 80.0]]],
+  ];
+  const endY = [];
+  FD.forEach(([name, c, pts]) => {
+    el(svg, "path", { d: pts.map((q, i) => (i ? "L" : "M") + x(q[0]) + " " + y(q[1])).join(" "), fill: "none", stroke: c, "stroke-width": 2, "stroke-linejoin": "round" });
+    pts.forEach((q, i) => {
+      whiskV(svg, x(q[0]), y, q[1], c);
+      el(svg, "circle", { cx: x(q[0]), cy: y(q[1]), r: 4, fill: c, stroke: "var(--surface)", "stroke-width": 2,
+        "data-tip": name + " (full document)\naggressiveness " + [0.3, 0.5, 0.7][i] + "\ntokens kept " + q[0] + "%\naccuracy " + q[1] + "% ± " + ci95(q[1]).toFixed(1) });
+    });
+    const last = pts[pts.length - 1];
+    let ly = y(last[1]) + 4;
+    while (endY.some(p => Math.abs(p - ly) < 13)) ly += 13;
+    endY.push(ly);
+    el(svg, "text", { x: x(last[0]) + 10, y: ly, "font-size": 10.5, fill: "var(--ink-2)" }).textContent = name;
+  });
+  bindTips(svg);
+})();
+
+// ---- Chart 8: fixed focus pipeline vs v7.1 plain ----
+(() => {
+  const svg = document.getElementById("fixchart");
+  const W = 884, H = 330, M = { t: 16, r: 190, b: 40, l: 44 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const x = r => M.l + ((100 - r) / 100) * iw;
+  const y = v => M.t + (1 - v / 95) * ih;
+  for (let v = 0; v <= 90; v += 15) {
+    el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el(svg, "text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 10, fill: "var(--muted)" }).textContent = v + "%";
+  }
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(82.7), y2: y(82.7), stroke: "var(--muted)", "stroke-width": 2, "stroke-dasharray": "5 4" });
+  el(svg, "text", { x: M.l + iw + 8, y: y(82.7) + 4, "font-size": 10.5, fill: "var(--muted)" }).textContent = "control 82.7%";
+  for (let r = 100; r >= 0; r -= 25) {
+    el(svg, "text", { x: x(r), y: H - M.b + 16, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)" }).textContent = r + "%";
+  }
+  el(svg, "text", { x: M.l + iw / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)" }).textContent = "tokens kept (more compression →)";
+  el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(0), y2: y(0), stroke: "var(--axis)", "stroke-width": 1 });
+  const SERIES8 = [
+    ["focus fixed pipeline", "var(--s6)", [
+      [86, 79.3, "fuse2: v7.1@0.7 OR 90% focus lines"],
+      [79, 81.3, "fuse2: v7.1@0.7 OR 70% focus lines — 1.4 pp from control"],
+      [72, 78.0, "fuse2: v7.1@0.7 OR 50% focus lines"],
+      [69, 74.7, "fuse2 grid: v7.1@0.5 OR 30% focus lines"],
+      [66, 76.7, "fuse2 grid BEST: v7.1@0.7 OR 30% focus lines"],
+      [64, 72.7, "fuse2: v7.1@0.5 OR 10% focus lines"],
+      [59, 72.0, "fuse2 grid: v7.1@0.7 OR 10% focus lines"],
+      [30, 53.3, "line-max, 30% budget"],
+      [10, 20.0, "line-max, 10% budget"],
+      [3.6, 16.7, "stock runner (tau 0.01) — before the fix"]]],
+    ["v7.1 plain", "var(--s4)", [
+      [46, 48.0, "aggr 0.3"], [38, 38.7, "aggr 0.5"], [31, 26.0, "aggr 0.7"]]],
+  ];
+  const endY8 = [];
+  SERIES8.forEach(([name, c, pts]) => {
+    el(svg, "path", { d: pts.map((q, i) => (i ? "L" : "M") + x(q[0]) + " " + y(q[1])).join(" "), fill: "none", stroke: c, "stroke-width": 2, "stroke-linejoin": "round" });
+    pts.forEach(q => {
+      whiskV(svg, x(q[0]), y, q[1], c);
+      el(svg, "circle", { cx: x(q[0]), cy: y(q[1]), r: 4, fill: c, stroke: "var(--surface)", "stroke-width": 2,
+        "data-tip": name + "\n" + q[2] + "\ntokens kept " + q[0] + "%\naccuracy " + q[1] + "% ± " + ci95(q[1]).toFixed(1) });
+    });
+    const first = pts[0];
+    let ly = y(first[1]) + 4;
+    while (endY8.some(p => Math.abs(p - ly) < 13)) ly += 13;
+    endY8.push(ly);
+    el(svg, "text", { x: x(first[0]) + 10, y: ly - 10, "font-size": 10.5, fill: "var(--ink-2)" }).textContent = name;
+  });
+  bindTips(svg);
+})();
+
+// ---- Table ----
+const TBL = [
+  ["FULL-DOC control (~121k tok)", "100%", null, 78.7],
+  ["FULL-DOC v7.1 safetab @ 0.5", "57%", null, 82.7],
+  ["FULL-DOC FUSE-safetab @ 0.5", "57%", null, 82.7],
+  ["FULL-DOC v7.1 safetab @ 0.3", "65%", null, 82.0],
+  ["FULL-DOC FUSE-safetab @ 0.7", "47%", null, 80.0],
+  ["FULL-DOC v7.1 safetab @ 0.7", "47%", null, 76.0],
+  ["FULL-DOC e16b focused-safetab (2.2x)", "46%", null, 77.3],
+  ["FULL-DOC e16 focused-safetab (3.0x)", "33%", null, 75.3],
+  ["FULL-DOC fuse2f70-safetab @ 0.7", "83%", null, 80.7],
+  ["FULL-DOC e17b budget+safetab", "56%", null, 79.3],
+  ["FULL-DOC saferow @ 0.5 (E13)", "57%", null, 82.7],
+  ["FULL-DOC safectx2 @ 0.3 (E13)", "69%", null, 81.3],
+  ["FULL-DOC safectx2 @ 0.7 (E13)", "52%", null, 81.3],
+  ["FULL-DOC saferow @ 0.3 (E13)", "65%", null, 81.3],
+  ["FULL-DOC safectx2 @ 0.5 (E13)", "62%", null, 80.7],
+  ["FULL-DOC safenum @ 0.3 (E13)", "64%", null, 80.7],
+  ["FULL-DOC v7.1 plain @ 0.3", "51%", null, 72.7],
+  ["FULL-DOC focus-only (needle) @ tau .01", "0.5%", null, 16.7],
+  ["E16b focused-safetab (oracle)", "46%", null, 56.7],
+  ["E17 rank-budget 50% (oracle, failed)", "50%", null, 41.3],
+  ["E19 lexical anchor (oracle)", "34%", null, 31.3],
+  ["fuse2f70-safetab @ 0.7 (oracle)", "79%", null, 81.3],
+  ["fuse2f90-safetab @ 0.7 (oracle)", "86%", null, 79.3],
+  ["fuse2f50-safetab @ 0.7 (oracle)", "72%", null, 78.0],
+  ["fuse2f30-safetab @ 0.7 (oracle)", "66%", null, 76.7],
+  ["fuse2f30-safetab @ 0.5 (oracle)", "69%", null, 74.7],
+  ["fuse2-safetab @ 0.7 (oracle)", "59%", null, 72.0],
+  ["fuse2-safetab @ 0.5 (oracle)", "64%", null, 72.7],
+  ["focusfix line-max 30% (oracle)", "30%", null, 53.3],
+  ["focusfix line-max 10% (oracle)", "10%", null, 20.0],
+  ["FUSE-safetab @ 0.3 (oracle)", "67%", null, 73.3],
+  ["FUSE-safetab @ 0.5 (oracle)", "62%", null, 68.0],
+  ["FUSE plain @ 0.5 (oracle)", "40%", null, 46.0],
+  ["control", "100%", 88.0, 82.7],
+  ["v7.1 safenum @ 0.3", "66%", 77.3, 66.7],
+  ["v7.1 safenum @ 0.5", "61%", 78.0, 66.7],
+  ["v7.1 safenum @ 0.7", "56%", 76.7, 58.7],
+  ["diverse+code @ 0.3", "87%", null, 74.7],
+  ["mb-diverse @ 0.3", "84%", null, 71.3],
+  ["diverse+code @ 0.5", "64%", null, 50.7],
+  ["v7.1 plain @ 0.3", "46%", 54.7, 39.3],
+  ["mb-diverse @ 0.5", "59%", null, 42.7],
+  ["v7.1 plain @ 0.5", "38%", 50.7, 40.0],
+  ["bear-4.1 @ 0.3", "43%", null, 32.7],
+  ["mb-diverse @ 0.7", "43%", null, 33.3],
+  ["diverse+code @ 0.7", "39%", null, 30.0],
+  ["v7.1 plain @ 0.7", "31%", 45.3, 25.3],
+  ["bear-4.1 @ 0.5", "30%", null, 16.7],
+  ["bear-4.1 @ 0.7", "13%", null, 6.0],
+];
+document.getElementById("tbl").innerHTML = TBL.map(([n, r, a, b]) =>
+  "<tr><td>" + n + "</td><td>" + r + "</td><td>" + (a === null ? "—" : a.toFixed(1) + "%") + "</td><td>" + (b === null ? "—" : b.toFixed(1) + "%") + "</td></tr>").join("");
+</script>

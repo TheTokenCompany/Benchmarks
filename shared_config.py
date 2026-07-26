@@ -56,8 +56,15 @@ def load_config(benchmark_name: str) -> dict:
     cfg["BEAR_MODELS"] = shared["bear_models"]
     cfg["AGGRESSIVENESS_LEVELS"] = shared["aggressiveness_levels"]
 
-    # Results dir: <root>/<benchmark_name>/results
-    cfg["RESULTS_DIR"] = os.path.join(_ROOT_DIR, benchmark_name, "results")
+    # Env overrides for alternate sweeps without touching config.yaml
+    if os.getenv("BEAR_MODELS"):
+        cfg["BEAR_MODELS"] = [m.strip() for m in os.environ["BEAR_MODELS"].split(",")]
+    if os.getenv("AGGR_LEVELS"):
+        cfg["AGGRESSIVENESS_LEVELS"] = [float(a) for a in os.environ["AGGR_LEVELS"].split(",")]
+
+    # Results dir: <root>/<benchmark_name>/results (RESULTS_SUBDIR overrides leaf name)
+    results_leaf = os.getenv("RESULTS_SUBDIR", "results")
+    cfg["RESULTS_DIR"] = os.path.join(_ROOT_DIR, benchmark_name, results_leaf)
 
     # Benchmark-specific values
     cfg["DATASET_NAME"] = bench["dataset_name"]
@@ -66,8 +73,8 @@ def load_config(benchmark_name: str) -> dict:
 
     # Auto-generate CONFIGS from bear_models × aggressiveness_levels
     configs = {"control": {"compressed": False, "aggressiveness": None, "bear_model": None}}
-    for model in shared["bear_models"]:
-        for agg in shared["aggressiveness_levels"]:
+    for model in cfg["BEAR_MODELS"]:
+        for agg in cfg["AGGRESSIVENESS_LEVELS"]:
             name = f"{model}--{agg}"
             configs[name] = {
                 "compressed": True,

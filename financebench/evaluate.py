@@ -47,7 +47,7 @@ def judge_answer(question: str, gold_answer: str, model_answer: str) -> dict:
                     {"role": "user", "content": user_msg},
                 ],
 
-                max_completion_tokens=200,
+                max_completion_tokens=2000,
             )
             text = response.choices[0].message.content.strip()
             correct = text.upper().startswith("CORRECT")

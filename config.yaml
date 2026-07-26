@@ -9,10 +9,17 @@ shared:
 
   bear_api_url: "https://api.thetokencompany.com/v1/compress"
   bear_models:
-    - "bear-1.2"
-    - "bear-1.1"
+    - "bear-v7.1-rl-max-v2"
+    - "bear-v7.1-rl-max-v2-safenum"
+    - "bear-v7.1-rl-max-v2-safectx2"
+    - "bear-v7.1-rl-max-v2-saferow"
+    - "bear-v7.1-rl-max-v2-safehdr"
+    - "bear-v7.1-rl-max-v2-safeline"
+    - "bear-v7.1-rl-max-v2-safeper"
+    - "bear-v7.1-rl-max-v2-safetab"
+    - "bear-v7.1-rl-max-v2-weld"
 
-  aggressiveness_levels: [0.05, 0.1, 0.3, 0.4, 0.5, 0.7]
+  aggressiveness_levels: [0.3, 0.5, 0.7]
 
 # Per-benchmark settings
 benchmarks:
