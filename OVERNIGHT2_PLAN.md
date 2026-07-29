@@ -65,3 +65,36 @@ what RL bought, spend estimate, honest gap-to-90 statement.
 - Wave-2 SFT verdict (E32): ettin best SFT (78.7 @ 51) but no wave-2 beat wave-1 deep;
   inversion (early epoch > full) replicated 3x.
 - Artifact current through kl03 records (label kl03-stable-74-at-22).
+
+## v11 label-policy record (28.07, final)
+Seam-window survivor rule: v11_pretokenize.py IMPLEMENTS the qtype-conditional
+tightening (metrics/multistep labels-only seam windows -> relabelled negative;
+check_window raises on violations). On the v11 corpus this is INERT — zero
+relabels; all 62 labels-only seam windows are domain-qualitative, which the rule
+keeps by design. Decision (option a): keep the tightening live as a guard. It
+costs nothing here and catches the bad case if a future corpus (v12) produces
+numeric-qtype labels-only seams. Recorded so no future rebuild "discovers" the
+branch. Tensors sha256-verified identical across final uploads; word-boundary
+golden fixtures run at the start of every build.
+
+## E43 record: adaptive dosing KILLED (28.07, ~$5)
+Every confidence-dose policy loses to fixed budget at matched mean retention
+(best: -2.0pp at tightest band; pure tau -4.7). Mechanism: accuracy-retention is
+steeply concave -> Jensen penalty on retention variance; starving (-16.7pp)
+costs 3x feeding (+5.7); router signal Spearman 0.014 = uninformative.
+Oracle "90.7%" debunked: above reader ceiling; best-of-3-identical-runs =
+85-87% from 6-11% verdict flips alone. RULE: no per-question oracles over
+config banks. Budget22 failure split: 49% evidence PRESENT but reader failed
+(unreachable), 51% evidence lost (recall -> v12 RL target). safetab-on-kept
++4.6pp at same retention: WHAT you keep dominates HOW MUCH.
+
+## E44 record: evidence-rank segmentation (28.07, ~$1) — V12 IS DATA-FIRST
+r_star = retention at which each of 3876 gold-evidence numbers first survives.
+Failures are enriched 3.3x in BLIND SPOTS (r*>50%) vs only 1.7x in near misses
+(22-33%); near misses are largely benign (reader answers anyway). Median dropped
+number on failed questions needs ~43% retention. => RL sharpening buys the least
+distinguishing bucket; v12 = training-data coverage of blind-spot line types
+first, RL second. Blind-spot (question, number, r_star) list in scratchpad
+evrank.json. ALSO: 8.1% of gold evidence numbers absent from extracted text
+entirely — PDF extraction loss, hard recall ceiling; try pdfplumber/marker vs
+pypdf before v12 evals.

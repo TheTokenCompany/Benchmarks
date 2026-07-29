@@ -82,9 +82,12 @@ def segment_words(text):
     """[(start, end)] char spans of atomic words in `text`.
 
     Base pass is whitespace-run splitting (identical to v8's word_char_spans and to
-    line.split() indexing). Then two merges keep numbers atomic, per PR #714:
+    line.split() indexing). Then three merges keep numbers atomic, per PR #714:
       "1, 904"  -> one word (a thousands separator that got split by whitespace)
       "$ 1,904" -> one word (a bare currency symbol is never its own decision)
+      "12.5 %"  -> one word (a unit that only means something attached to a number)
+    Currency binds forward, units bind backward; a symbol that is both (`$`) uses
+    the forward rule only.
     """
     spans, i, n = [], 0, len(text)
     while i < n:
@@ -109,8 +112,12 @@ def segment_words(text):
                             and w[:1].isdigit())
             # bare currency symbol glued onto the amount that follows it
             bare_currency = prev in CURRENCY and (w[:1].isdigit() or w[:1] in CURRENCY)
-            # a unit that only means something attached to its number: "12.5" + "%"
-            trailing_unit = (strip_edges(w) in UNITS and prev
+            # a unit that only means something attached to its number: "12.5" + "%".
+            # Currency symbols are excluded: they bind FORWARD (bare_currency), and
+            # merging one backward both attaches it to the wrong amount and blocks
+            # the forward merge -- "2026 $ 9,353" became "2026 $" + "9,353".
+            unit = strip_edges(w)
+            trailing_unit = (unit in UNITS and unit not in CURRENCY and prev
                              and (prev[-1].isdigit() or prev[-1] in ")%"))
             if split_number or bare_currency or trailing_unit:
                 merged[-1] = (ps, e)
@@ -395,7 +402,7 @@ def build_item(tf, qa, tok, max_len, question_budget):
     }
 
 
-def rebuild_item(rec, tok, max_len, question_budget):
+def rebuild_item(rec, tok, max_len, question_budget, resegment=False):
     """Re-tokenize a STORED record with a different tokenizer, same chunk and words.
 
     This is how the ettin variant gets byte-identical items to the mmBERT build:
@@ -425,18 +432,42 @@ def rebuild_item(rec, tok, max_len, question_budget):
     # which is the whole point of --reuse-from. Segmentation itself is deterministic and
     # tokenizer-independent, so a prefix MISMATCH means the word rules changed since
     # that build and every downstream index would be quietly misaligned -- fail loudly.
-    n_stored = len(rec["words"])
-    if len(spans_full) < n_stored:
-        raise ValueError(f"{rec['qa_id']}: re-segmentation yields {len(spans_full)} "
-                         f"words, fewer than the {n_stored} stored")
-    word_spans = spans_full[:n_stored]
-    words = [chunk_text[s:e] for s, e in word_spans]
-    if words != rec["words"]:
-        bad = next((i for i, (a, b) in enumerate(zip(words, rec["words"])) if a != b), -1)
-        raise ValueError(f"{rec['qa_id']}: re-segmentation disagrees with the stored "
-                         f"words at index {bad} ({words[bad]!r} vs "
-                         f"{rec['words'][bad]!r}); the prep's word rules changed since "
-                         f"that build")
+    if resegment:
+        # --reuse-resegment: same items (chunk_text identity), FRESH word rules.
+        # For rebuilding a dataset after a deliberate segmentation fix (e.g. the
+        # $-binding correction): item selection and text are preserved, word
+        # boundaries are re-derived, so downstream labels/facts re-anchor to the
+        # corrected words. Cover the same CHAR span the stored words covered.
+        stored_end = None
+        if rec["words"]:
+            # find where the stored prefix ended in chunk_text via cumulative search
+            pos = 0
+            for w in rec["words"]:
+                pos = chunk_text.find(w, pos)
+                if pos < 0:
+                    break
+                pos += len(w)
+            stored_end = pos if pos > 0 else None
+        if stored_end:
+            word_spans = [(s, e) for s, e in spans_full if e <= stored_end]
+        else:
+            word_spans = spans_full
+        if not word_spans:
+            return None
+        words = [chunk_text[s:e] for s, e in word_spans]
+    else:
+        n_stored = len(rec["words"])
+        if len(spans_full) < n_stored:
+            raise ValueError(f"{rec['qa_id']}: re-segmentation yields {len(spans_full)} "
+                             f"words, fewer than the {n_stored} stored")
+        word_spans = spans_full[:n_stored]
+        words = [chunk_text[s:e] for s, e in word_spans]
+        if words != rec["words"]:
+            bad = next((i for i, (a, b) in enumerate(zip(words, rec["words"])) if a != b), -1)
+            raise ValueError(f"{rec['qa_id']}: re-segmentation disagrees with the stored "
+                             f"words at index {bad} ({words[bad]!r} vs "
+                             f"{rec['words'][bad]!r}); the prep's word rules changed since "
+                             f"that build")
 
     # Tokenize only the span the stored words cover, so the new tokenizer does not spend
     # budget on text the source build had already dropped. Offsets stay comparable
@@ -597,6 +628,11 @@ def main():
                     help="dir holding {train,val}_meta.jsonl from a previous build: "
                          "reuse the SAME items and chunk_text, re-tokenizing only. This "
                          "is how the ettin variant stays comparable to the mmBERT one.")
+    ap.add_argument("--reuse-resegment", action="store_true",
+                    help="with --reuse-from: keep the same items but re-derive word "
+                         "boundaries with the CURRENT segment_words (for rebuilding "
+                         "after a deliberate segmentation fix). Facts/labels re-anchor "
+                         "to the corrected words.")
     ap.add_argument("--exclude-train-from", default="",
                     help="dir holding train_meta.jsonl from a previous build: exclude "
                          "those qa_ids from the TRAIN pool (fresh-data RL round — the "
@@ -647,7 +683,8 @@ def main():
                 recs = recs[:args.limit]
             out, failed = [], 0
             for rec in recs:
-                it = rebuild_item(rec, tok, args.max_len, args.question_budget)
+                it = rebuild_item(rec, tok, args.max_len, args.question_budget,
+                                  resegment=args.reuse_resegment)
                 if it is None:
                     failed += 1
                     continue

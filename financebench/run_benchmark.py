@@ -54,7 +54,36 @@ def build_prompt(context: str, question: str) -> list[dict]:
 
 
 def query_llm(messages: list[dict]) -> str:
-    """Send messages to OpenAI and return the response text."""
+    """Send messages to the answerer and return the response text.
+
+    ANSWER_PROVIDER=anthropic switches to the Anthropic SDK (Claude readers);
+    default is the OpenAI-protocol path (OpenAI or any compatible endpoint).
+    """
+    if os.getenv("ANSWER_PROVIDER") == "anthropic":
+        import anthropic
+        aclient = anthropic.Anthropic(api_key=os.getenv("ANSWER_API_KEY") or None)
+        system = "\n".join(m["content"] for m in messages if m["role"] == "system")
+        chat = [m for m in messages if m["role"] != "system"]
+        for attempt in range(config.MAX_RETRIES):
+            try:
+                with aclient.messages.stream(
+                    model=config.OPENAI_MODEL,
+                    max_tokens=8000,
+                    system=system,
+                    messages=chat,
+                ) as stream:
+                    resp = stream.get_final_message()
+                if resp.stop_reason == "refusal":
+                    return ""
+                return "".join(b.text for b in resp.content if b.type == "text").strip()
+            except Exception as e:
+                if attempt < config.MAX_RETRIES - 1:
+                    delay = config.RETRY_BASE_DELAY * (2 ** attempt)
+                    print(f"  Anthropic API error (attempt {attempt + 1}): {e}. Retrying in {delay}s...")
+                    time.sleep(delay)
+                else:
+                    raise RuntimeError(f"Anthropic API failed after {config.MAX_RETRIES} retries: {e}")
+
     client = OpenAI(
         api_key=os.getenv("ANSWER_API_KEY", config.OPENAI_API_KEY),
         base_url=os.getenv("ANSWER_BASE_URL") or None,
@@ -62,11 +91,15 @@ def query_llm(messages: list[dict]) -> str:
 
     for attempt in range(config.MAX_RETRIES):
         try:
+            kwargs = {}
+            if os.getenv("ANSWER_TEMPERATURE") is not None:
+                kwargs["temperature"] = float(os.environ["ANSWER_TEMPERATURE"])
             response = client.chat.completions.create(
                 model=config.OPENAI_MODEL,
                 messages=messages,
 
                 max_completion_tokens=8000,
+                **kwargs,
             )
             return response.choices[0].message.content.strip()
         except Exception as e:

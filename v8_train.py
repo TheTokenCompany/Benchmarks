@@ -23,7 +23,11 @@ kept verbatim in spirit; the v8 deltas are:
   6. Own volumes, all prefixed otso-v8. compression-models is mounted READ-ONLY.
 
 Data comes from v8_pretokenize.py: [CLS] question [SEP] filing_window [SEP], with
-loss_mask 1 only on filing-content tokens.
+loss_mask 1 only on filing-content tokens. The v10 builds (v10_build_targets.py) use
+the same layout but split inputs from labels -- {train,val}.pt hold the inputs and
+{train,val}_targets.pt the labels -- and add an optional per-token loss_weight, which
+scales the pointwise loss and its denominator. Absent, every token weighs 1.0 and the
+run is bit-for-bit the old one.
 
 Run:
     modal run v8_train.py --config r1_warm71_2048
@@ -75,6 +79,99 @@ HF_CACHE = "/hf-cache"
 KEEP_LABEL = 1
 DROP_LABEL = 0
 
+# v11 line-type channel: 0 pad/special/question, 1 prose, 2 table, 3 title,
+# 4 period header (see v11_pretokenize.py). Optional -- data without it trains
+# exactly as before.
+N_LINE_TYPES = 5
+
+
+# ---------------------------------------------------------------------------
+# Data path (module level so a CPU smoke test can exercise the REAL code rather
+# than a copy of it; torch is imported lazily so `modal run` need not pay for it)
+# ---------------------------------------------------------------------------
+
+def merge_label_files(pretok_dir, split, d):
+    """v10/v11 layout: {split}.pt holds INPUTS, {split}_targets.pt holds LABELS.
+
+    One input build can then carry several label policies. A dataset whose .pt
+    already has 'targets' (v8/v9) is returned untouched."""
+    import torch
+    from pathlib import Path as _Path
+
+    if "targets" in d:
+        return d
+    tpath = _Path(pretok_dir) / f"{split}_targets.pt"
+    if not tpath.exists():
+        raise FileNotFoundError(
+            f"{split}.pt has no 'targets' and {tpath} is missing. Keys present: "
+            f"{sorted(k for k in d)}")
+    td = torch.load(tpath, map_location="cpu", weights_only=False)
+    if isinstance(d.get("qa_id"), list) and isinstance(td.get("qa_id"), list):
+        if d["qa_id"] != td["qa_id"]:
+            raise ValueError(f"{split}: qa_id order differs between {split}.pt and "
+                             f"{tpath.name} -- labels would be attached to the "
+                             f"wrong rows")
+    for k in ("targets", "loss_mask", "loss_weight"):
+        if k in td:
+            d[k] = td[k]
+    print(f"  {split}: merged labels from {tpath.name} "
+          f"(loss_weight {'present' if 'loss_weight' in td else 'ABSENT -> 1.0'})")
+    return d
+
+
+def to_tensors(d):
+    """Dataset dict -> the 7 tensors the loader yields, in batch order.
+
+    (input_ids, attention_mask, targets, loss_mask, source_id, loss_weight, line_type)
+
+    The last two are OPTIONAL in the data: loss_weight absent -> all ones, line_type
+    absent -> all zeros. Both defaults reproduce the pre-v11 run bit for bit, so a
+    v8/v9/v10 dataset is unaffected by this signature."""
+    import torch
+
+    n = d["input_ids"].shape[0]
+    src = d.get("source_id")
+    lw = d.get("loss_weight")
+    lt = d.get("line_type")
+    return (
+        d["input_ids"].long(),                       # [N, L]
+        d["attention_mask"].long(),                  # [N, L]
+        d["targets"].float(),                        # [N, L] keep target in [0,1]
+        d["loss_mask"].bool(),                       # [N, L] 1 = filing-content
+        (src.long() if src is not None else torch.zeros(n, dtype=torch.long)),
+        (lw.float() if lw is not None
+         else torch.ones_like(d["targets"], dtype=torch.float)),
+        (lt.long() if lt is not None
+         else torch.zeros_like(d["input_ids"], dtype=torch.long)),
+    )
+
+
+def build_line_type_embedding(hidden_size, n_types=N_LINE_TYPES):
+    """Zero-initialised line-type embedding, added to the token embeddings.
+
+    Zero init is the point: at step 0 the warm-started encoder sees EXACTLY the
+    inputs it was trained on, so a v11a/v11b run cannot be worse than its warm start
+    for reasons of initialisation. The channel earns its way in through the gradient
+    or it stays at zero and costs nothing."""
+    import torch.nn as nn
+
+    emb = nn.Embedding(n_types, hidden_size)
+    nn.init.zeros_(emb.weight)
+    return emb
+
+
+def encode_with_line_type(model, ids, attention_mask, line_type, line_emb):
+    """model(...).logits, with the line-type embedding folded in when present.
+
+    Adding through inputs_embeds rather than a wrapper keeps the encoder's own
+    position handling and embedding LayerNorm exactly where they were: for both
+    ModernBERT and BERT-style encoders, inputs_embeds substitutes ONLY the word
+    embedding lookup."""
+    if line_emb is None:
+        return model(input_ids=ids, attention_mask=attention_mask).logits
+    embeds = model.get_input_embeddings()(ids) + line_emb(line_type)
+    return model(inputs_embeds=embeds, attention_mask=attention_mask).logits
+
 
 def _optional_secrets(names):
     """Secrets that may not exist in this workspace. A missing wandb-secret must not
@@ -108,6 +205,10 @@ class TrainConfig:
     # warm_from: dir name under /models, loaded STRICT (keeps its pretrained keep/drop
     # head). Empty -> cold start from init_model (public HF encoder, fresh head).
     warm_from:      str = ""
+    # Which volume warm_from lives on: "models" = compression-models (shared, RO),
+    # "output" = otso-v8-training, i.e. warm-starting from one of OUR earlier runs
+    # (e.g. "exp-...-w2-140-s2/epoch_4").
+    warm_from_vol:  str = "models"
     init_model:     str = "jhu-clsp/mmBERT-small"
     fallback_model: str = "jhu-clsp/mmBERT-small"
     # Dropout goes on the AutoConfig BEFORE construction (see module docstring).
@@ -228,6 +329,17 @@ def train(config_overrides: dict = {}):
     print(f"Loading pretokenized data from {pretok_dir}")
     train_data = torch.load(train_path, map_location="cpu", weights_only=False)
     val_data = torch.load(val_path, map_location="cpu", weights_only=False)
+
+    # v10/v11 layout: {train,val}.pt carry only the INPUTS and the labels live beside
+    # them in {train,val}_targets.pt, so one input build can carry several label
+    # policies. Merge them in; nothing else changes.
+    for split, d in (("train", train_data), ("val", val_data)):
+        merge_label_files(pretok_dir, split, d)
+    has_line_type = "line_type" in train_data
+    if has_line_type != ("line_type" in val_data):
+        raise ValueError("line_type present in one split but not the other -- the "
+                         "val numbers would not describe the trained model")
+    print(f"  line_type channel: {'PRESENT' if has_line_type else 'absent'}")
     pretok_meta = {}
     if meta_path.exists():
         pretok_meta = json.loads(meta_path.read_text())
@@ -238,17 +350,6 @@ def train(config_overrides: dict = {}):
         if pretok_meta.get("max_len") not in (None, cfg.max_len):
             raise ValueError(f"cfg.max_len={cfg.max_len} != pretok max_len="
                              f"{pretok_meta['max_len']} ({pretok_dir})")
-
-    def to_tensors(d):
-        n = d["input_ids"].shape[0]
-        src = d.get("source_id")
-        return (
-            d["input_ids"].long(),                       # [N, L]
-            d["attention_mask"].long(),                  # [N, L]
-            d["targets"].float(),                        # [N, L] keep target in [0,1]
-            d["loss_mask"].bool(),                       # [N, L] 1 = filing-content
-            (src.long() if src is not None else torch.zeros(n, dtype=torch.long)),
-        )
 
     train_t = list(to_tensors(train_data))
     val_t = list(to_tensors(val_data))
@@ -319,11 +420,16 @@ def train(config_overrides: dict = {}):
             print(f"  best_score (val AUPRC) so far: {best_score:.4f}")
         tok_src = str(resume_path)
     elif cfg.warm_from:
-        warm_path = Path(MODELS_DIR) / cfg.warm_from
+        warm_root = {"models": MODELS_DIR, "output": OUTPUT_VOL}.get(cfg.warm_from_vol)
+        if warm_root is None:
+            raise ValueError(f"warm_from_vol must be 'models' or 'output', got "
+                             f"{cfg.warm_from_vol!r}")
+        warm_path = Path(warm_root) / cfg.warm_from
         if not warm_path.exists():
-            avail = sorted(d.name for d in Path(MODELS_DIR).iterdir() if d.is_dir())
-            raise FileNotFoundError(f"warm_from '{cfg.warm_from}' not on the models "
-                                    f"volume. Available (first 40): {avail[:40]}")
+            avail = sorted(d.name for d in Path(warm_root).iterdir() if d.is_dir())
+            raise FileNotFoundError(f"warm_from '{cfg.warm_from}' not on the "
+                                    f"{cfg.warm_from_vol} volume ({warm_root}). "
+                                    f"Available (first 40): {avail[:40]}")
         print(f"WARM start (strict) from {warm_path}")
         model = build_model(str(warm_path), False)   # strict: keep the pretrained head
         tok_src = str(warm_path)
@@ -348,6 +454,27 @@ def train(config_overrides: dict = {}):
             f"{model.config.vocab_size}. data_subdir='{cfg.data_subdir}' was built with "
             f"tokenizer={pretok_meta.get('tokenizer')!r}; re-run v8_pretokenize.py with "
             f"--tokenizer matching this model.")
+
+    # ---- optional v11 line-type channel ----
+    # A separate module, not part of the encoder: warm starts stay STRICT loads of a
+    # plain token-classification checkpoint, and the channel rides alongside in its
+    # own file. Its weights are zero at init, so epoch 0 is the warm start untouched.
+    line_emb = None
+    if has_line_type:
+        line_emb = build_line_type_embedding(model.config.hidden_size)
+        lt_ckpt = (Path(resume_path) / "line_type_embedding.pt"
+                   if existing_epochs else None)
+        if lt_ckpt is not None and lt_ckpt.exists():
+            line_emb.load_state_dict(torch.load(lt_ckpt, map_location="cpu"))
+            print(f"  line_type embedding restored from {lt_ckpt}")
+        elif existing_epochs:
+            raise FileNotFoundError(
+                f"resuming {resume_path} with line_type data but "
+                f"line_type_embedding.pt is missing -- the channel would silently "
+                f"restart from zero mid-run")
+        line_emb.to(device)
+        print(f"  line_type embedding: {N_LINE_TYPES} x {model.config.hidden_size} "
+              f"(zero-init, {line_emb.weight.numel()} params)")
 
     model.to(device)
     assert model.config.num_labels == 2, f"expected a 2-label head, got {model.config.num_labels}"
@@ -381,9 +508,10 @@ def train(config_overrides: dict = {}):
     print(f"W&B run: {wandb_run.url}")
 
     # ---- Optimizer + scheduler ----
-    optimizer = torch.optim.AdamW(
-        [p for p in model.parameters() if p.requires_grad],
-        lr=cfg.lr, weight_decay=cfg.weight_decay)
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    if line_emb is not None:
+        trainable += list(line_emb.parameters())
+    optimizer = torch.optim.AdamW(trainable, lr=cfg.lr, weight_decay=cfg.weight_decay)
     remaining_epochs = max(1, cfg.epochs - start_epoch)
     total_optim_steps = max(1, (len(train_loader) // grad_accum) * remaining_epochs)
     warmup_steps = int(total_optim_steps * cfg.warmup_frac)
@@ -397,9 +525,15 @@ def train(config_overrides: dict = {}):
         return F.cross_entropy(logits.permute(0, 2, 1), tcls, reduction="none",
                                label_smoothing=cfg.label_smoothing)
 
-    def loss_fn(logits, targets, mask):
+    def loss_fn(logits, targets, mask, weight=None):
+        """weight: optional per-token loss weight [N, L]. It scales the per-token CE
+        AND the denominator, so the result stays a weighted MEAN -- the loss keeps the
+        same scale as an unweighted run and the LR/clip settings carry over. Only the
+        pointwise terms (ce/focal/bce) are weighted; the Tversky and listwise terms are
+        set-level and have no per-token factor to apply."""
         mask_f = mask.float()
-        denom = mask_f.sum().clamp(min=1)
+        w_mask = mask_f * weight if weight is not None else mask_f
+        denom = w_mask.sum().clamp(min=1)
         if cfg.loss_type in ("ce", "focal"):
             ce = _ce_none(logits, targets)
             if cfg.loss_type == "focal":
@@ -409,7 +543,7 @@ def train(config_overrides: dict = {}):
                     tcls = (targets >= 0.5).float()
                     a_t = cfg.focal_alpha * tcls + (1 - cfg.focal_alpha) * (1 - tcls)
                     ce = a_t * ce
-            return (ce * mask_f).sum() / denom
+            return (ce * w_mask).sum() / denom
 
         # --- taaha's soft-target family (continuous targets) ---
         log_probs = F.log_softmax(logits, dim=-1)
@@ -421,7 +555,7 @@ def train(config_overrides: dict = {}):
         if cfg.loss_type == "focal_tversky":
             keep_term = keep_term * (1.0 - p_keep) ** cfg.focal_gamma
             drop_term = drop_term * p_keep ** cfg.focal_gamma
-        bce = (-(keep_term + drop_term) * mask_f).sum() / denom
+        bce = (-(keep_term + drop_term) * w_mask).sum() / denom
         if cfg.loss_type == "bce":
             return bce
         # soft Tversky over content tokens: all-drop -> TP=0 -> max loss (unlike BCE,
@@ -522,17 +656,21 @@ def train(config_overrides: dict = {}):
     @torch.no_grad()
     def evaluate(loader, desc):
         model.eval()
+        if line_emb is not None:
+            line_emb.eval()
         loss_sum, n_batches = 0.0, 0
         all_p, all_t, all_s = [], [], []
-        for ids, mask, targets, lmask, src in tqdm(loader, desc=desc):
+        for ids, mask, targets, lmask, src, lw, lt in tqdm(loader, desc=desc):
             ids = ids.to(device, non_blocking=True)
             mask = mask.to(device, non_blocking=True)
             targets = targets.to(device, non_blocking=True)
             lmask = lmask.to(device, non_blocking=True)
+            lw = lw.to(device, non_blocking=True)
+            lt = lt.to(device, non_blocking=True)
             with torch.amp.autocast("cuda", dtype=torch.bfloat16):
-                logits = model(input_ids=ids, attention_mask=mask).logits
+                logits = encode_with_line_type(model, ids, mask, lt, line_emb)
             logits = logits.float()
-            loss_sum += loss_fn(logits, targets, lmask).item()
+            loss_sum += loss_fn(logits, targets, lmask, lw).item()
             n_batches += 1
             p_keep = F.softmax(logits, dim=-1)[..., KEEP_LABEL]
             all_p.append(p_keep[lmask].cpu())
@@ -540,6 +678,8 @@ def train(config_overrides: dict = {}):
             # broadcast the per-window qtype onto its content tokens
             all_s.append(src.to(device).unsqueeze(1).expand_as(lmask)[lmask].cpu())
         model.train()
+        if line_emb is not None:
+            line_emb.train()
         all_p, all_t = torch.cat(all_p), torch.cat(all_t)
         all_s = torch.cat(all_s)
         pc = all_p.clamp(1e-6, 1 - 1e-6)
@@ -590,23 +730,26 @@ def train(config_overrides: dict = {}):
         epoch_start = time.time()
         print(f"\n{'='*60}\nEpoch {epoch+1}/{cfg.epochs}\n{'='*60}")
         model.train()
+        if line_emb is not None:
+            line_emb.train()
         total_loss = 0.0
         optimizer.zero_grad()
         step = -1
 
         for step, batch in enumerate(tqdm(train_loader, desc="Training")):
-            ids, mask, targets, lmask, _src = [t.to(device, non_blocking=True) for t in batch]
+            ids, mask, targets, lmask, _src, lw, lt = [
+                t.to(device, non_blocking=True) for t in batch]
             with torch.amp.autocast("cuda", dtype=torch.bfloat16):
-                logits = model(input_ids=ids, attention_mask=mask).logits
+                logits = encode_with_line_type(model, ids, mask, lt, line_emb)
             logits = logits.float()
-            raw = loss_fn(logits, targets, lmask)
+            raw = loss_fn(logits, targets, lmask, lw)
             (raw / grad_accum).backward()
             step_loss = raw.item()
             total_loss += step_loss
 
             if (step + 1) % grad_accum == 0:
                 grad_norm = torch.nn.utils.clip_grad_norm_(
-                    model.parameters(), cfg.max_grad_norm).item()
+                    trainable, cfg.max_grad_norm).item()
                 optimizer.step(); scheduler.step(); optimizer.zero_grad()
                 optim_step += 1
                 if optim_step % cfg.log_every_n_steps == 0:
@@ -620,7 +763,7 @@ def train(config_overrides: dict = {}):
             global_step += 1
 
         if step >= 0 and (step + 1) % grad_accum != 0:      # tail accumulation
-            torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.max_grad_norm)
+            torch.nn.utils.clip_grad_norm_(trainable, cfg.max_grad_norm)
             optimizer.step(); scheduler.step(); optimizer.zero_grad()
             optim_step += 1
 
@@ -674,6 +817,11 @@ def train(config_overrides: dict = {}):
             **{f"val/{k}": v for k, v in val.items() if "@" in k},
             **{f"val/{k}": v for k, v in val.items() if k.startswith("keep_ratio_")
                or k.startswith("target_keep_ratio_")},
+            # How far the line-type channel has moved off its zero init. Flat at ~0
+            # means the encoder is ignoring the feature and v11 is a pure data ablation.
+            **({"line_type/weight_norm": float(line_emb.weight.norm().item()),
+                "line_type/weight_absmax": float(line_emb.weight.abs().max().item())}
+               if line_emb is not None else {}),
             "best/score": best_score, "time/epoch_seconds": epoch_time,
             "lr_current": scheduler.get_last_lr()[0], "epochs_no_improve": epochs_no_improve,
         }
@@ -691,6 +839,8 @@ def train(config_overrides: dict = {}):
         epoch_path.mkdir(parents=True, exist_ok=True)
         model.save_pretrained(epoch_path)
         tokenizer.save_pretrained(epoch_path)
+        if line_emb is not None:
+            torch.save(line_emb.state_dict(), epoch_path / "line_type_embedding.pt")
         with open(epoch_path / "metrics.json", "w") as f:
             json.dump({"epoch": epoch + 1, "train_loss": avg_train_loss,
                        "val": val_json, "score": score}, f, indent=2)
@@ -703,6 +853,9 @@ def train(config_overrides: dict = {}):
             print(f"  *** New best val AUPRC: {score:.4f} ***")
             model.save_pretrained(save_path)
             tokenizer.save_pretrained(save_path)
+            if line_emb is not None:
+                torch.save(line_emb.state_dict(),
+                           save_path / "line_type_embedding.pt")
             with open(save_path / "best_metrics.json", "w") as f:
                 json.dump({"epoch": epoch + 1, "score": score, "val": val_json,
                            "train_loss": avg_train_loss, "hyperparams": asdict(cfg)},
@@ -816,6 +969,96 @@ PRESETS = {
     "r10_longtrain": {**_V43, "run_name": "v8-r10-longtrain",
                       "warm_from": "bear-v7.1-rl-max-v2",
                       "epochs": 30, "lr": 1.5e-5},
+
+    # ---- v10: rule-retiring SFT (v10_build_targets.py) --------------------------
+    # Labels teach what safenum/safetab patch at serve time, as a QUESTION-CONDITIONED
+    # selection: the answer's figures and their row labels/headers are keep, and every
+    # other numeral in the window is an up-weighted DROP (loss_weight 4.0 / 1.5). The
+    # point is selectivity, so watch val/keep_ratio staying near label_keep_ratio
+    # (~0.17) rather than drifting up toward a blanket keep-numbers prior.
+    "v10a": {**_V43, "run_name": "v10a-warm71", "warm_from": "bear-v7.1-rl-max-v2",
+             "warm_from_vol": "models",
+             "data_subdir": "v10-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # v10b warm-starts our own best v8 SFT run instead of the RL compressor.
+    "v10b": {**_V43, "run_name": "v10b-warm-w2140s2",
+             "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+             "warm_from_vol": "output",
+             "data_subdir": "v10-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # ---- v11: v10's labels on a REPOSITIONED distribution (v11_pretokenize.py) ----
+    # Same label policy as v10; what changed is the inputs. The evidence now lands
+    # uniformly in the start/middle/end third instead of always dead-centre, ~17% of
+    # windows are evidence-free negatives that must come back all-drop with the
+    # question still attached, and a line_type channel (prose/table/title/period) is
+    # added to the token embeddings through a zero-initialised embedding.
+    #
+    # Read the run against v10, not against v8: keep_ratio should track
+    # label_keep_ratio as before, but val/auprc is over a HARDER set (a model that
+    # scored position rather than content loses that crutch here), so a flat AUPRC
+    # against v10 is already an improvement in what was learned. line_type/weight_norm
+    # staying at ~0 means the channel was ignored and v11 reduces to a data ablation.
+    "v11a": {**_V43, "run_name": "v11a-warm71", "warm_from": "bear-v7.1-rl-max-v2",
+             "warm_from_vol": "models",
+             "data_subdir": "v11-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # v11b warm-starts our own best v8 SFT run instead of the RL compressor.
+    "v11b": {**_V43, "run_name": "v11b-warm-w2140s2",
+             "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+             "warm_from_vol": "output",
+             "data_subdir": "v11-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # e55: v11b recipe on E54 DISCOVERED labels (reader-verified minimal-sufficient
+    # sets + alt-minima soft tiers + leakage down-weighting) instead of the v10
+    # hand policy. Same warm start and windows; only the targets change.
+    "e55": {**_V43, "run_name": "e55-discovered-w2140s2",
+            "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+            "warm_from_vol": "output",
+            "data_subdir": "e55-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # v11b seed replicates: is the champion's 81.1@33 seed luck? (n=1 training run)
+    "v11b_s2": {**_V43, "run_name": "v11b-warm-w2140s2-seed7",
+                "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+                "warm_from_vol": "output", "seed": 7,
+                "data_subdir": "v11-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+    "v11b_s3": {**_V43, "run_name": "v11b-warm-w2140s2-seed99",
+                "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+                "warm_from_vol": "output", "seed": 99,
+                "data_subdir": "v11-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # e55c: v11 labels VERBATIM except label REPAIR from the E54 search — add the
+    # reader-verified missing evidence lines on the 474 items whose v11/v10 labels
+    # could not answer (24% label-error rate), and up-weight verified breakers.
+    # No tier flattening: the scaffold ordering that won stays untouched.
+    "e55c": {**_V43, "run_name": "e55c-repair-w2140s2",
+             "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+             "warm_from_vol": "output",
+             "data_subdir": "e55c-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # e55b: corrective arm after e55's boilerplate failure — discovered necessity
+    # REORDERS the v10 keep-set (core 1.0 > alt 0.8 > v10-context 0.5 > drop 0)
+    # instead of demoting v10 keeps into the noise floor.
+    "e55b": {**_V43, "run_name": "e55b-scaffold-w2140s2",
+             "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+             "warm_from_vol": "output",
+             "data_subdir": "e55b-sft", "max_len": 2048, "epochs": 8, "patience": 3},
+
+    # v12a: the v11b recipe on the v12 corpus. Same warm start, same label policy,
+    # same tensor contract — what changes is the DISTRIBUTION the windows come from.
+    # v11's windows are all sub-windows of an evidence-centered ~2k chunk, so its
+    # negatives are the evidence's own neighbours; v12 cuts windows out of FULL SEC
+    # filings, draws negatives from a different part of the document (>= 200 lines
+    # away), and adds a dense-block mix aimed at the oracle-regime collapse (v11b
+    # falls to 52% at a 33% budget on already-dense context).
+    #
+    # Read it against v11b on GENERALIZATION, not on val/auprc: the val set is
+    # different filings entirely (doc-level split over a 519-filer corpus with the
+    # FinanceBench filers blocklisted), so the two numbers are not comparable. Fewer
+    # epochs than v11b because the dataset is ~40% larger in windows.
+    "v12a": {**_V43, "run_name": "v12a-fulldoc-w2140s2",
+             "warm_from": "exp-20260725-235952-w2-140-s2/epoch_4",
+             "warm_from_vol": "output",
+             "data_subdir": "v12-sft", "max_len": 2048, "epochs": 6, "patience": 2},
 }
 
 

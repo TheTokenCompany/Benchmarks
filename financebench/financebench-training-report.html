@@ -82,6 +82,7 @@
       <span><i class="sw" style="background:var(--s6)"></i>fusion (v7.1 ∪ focus)</span>
       <span><i class="sw" style="background:var(--s7)"></i>v8 (trained overnight, clean data)</span>
       <button id="linetoggle" style="margin-left:auto;background:var(--surface);color:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:0.78rem;cursor:pointer">Lines: on</button>
+      <button id="paretotoggle" style="background:var(--surface);color:var(--ink-2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:0.78rem;cursor:pointer" title="Full-filings panel: hide every series that never touches the Pareto frontier at any retention">Pareto series only: off</button>
     </div>
     <div class="chartbox"><svg id="masterA" width="884" height="440" viewBox="0 0 884 440" role="img" aria-label="Every oracle-context configuration: accuracy versus tokens kept, colored by model family"></svg></div>
     <div class="chartbox" style="margin-top:10px"><svg id="masterB" width="884" height="440" viewBox="0 0 884 440" role="img" aria-label="Every full-filing configuration: accuracy versus tokens kept, colored by model family"></svg></div>
@@ -93,10 +94,11 @@
     line is that regime's uncompressed control. CIs (&plusmn;4-8 pp) omitted here for legibility — see the
     per-section charts. The oracle panel colors by model family (legend above); the <b>full-filings panel
     colors by ownership</b> — orange = taaha's models served plain (bear-4.x / v7.x / dscale / ws72 / gen3 /
-    prod bear-1.2 with no added serving logic), violet = otso's work: models trained in this campaign (v8 SFT +
-    v9 RL) plus every config using otso's serving inventions (safe* keep-rules, weld, budget pinning, fusion,
-    focused gating, label-render) even when the underlying model is taaha's. Hover labels and the Full-numbers
-    table disambiguate.</p>
+    focus-v4 / prod bear-1.2, no added serving logic), green = alan's models served plain (bear-v8-fin cold
+    family), violet = otso's work: models trained in this campaign (v8 SFT + v9 RL) plus every config using
+    otso's serving inventions (safe* keep-rules, weld, budget pinning, fusion, focused gating, label-render)
+    even when the underlying model is taaha's or alan's. Hover labels and the Full-numbers table
+    disambiguate.</p>
   </div>
 
   <h2>1 &middot; Accuracy vs tokens kept (oracle contexts)</h2>
@@ -307,6 +309,43 @@
     been silently dead — reported to taaha).</p>
   </div>
 
+  <h2>11 &middot; The accuracy-delta story: 8 readers &times; replication (E36-E38)</h2>
+  <div class="card">
+    <p><b>E36 — what compression does to accuracy, per reader.</b> Control (full ~121k-token filings) vs
+    compressed configs across eight readers; Geminis and the gpt-5.5 candidate at three replicates each
+    (run-to-run spread on this harness is 3-9 pp — single runs cannot support claims).</p>
+    <div class="overflow"><table>
+      <thead><tr><th>reader</th><th>control</th><th>compressed</th><th>delta</th><th>evidence</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Sonnet 5</td><td>88.0%</td><td>87.3% @ 55% kept</td><td>&minus;0.7</td><td>4-config sweep, all flat — parity at half the tokens</td></tr>
+        <tr><td>gpt-5.5</td><td>87.1%</td><td>87.3% @ 77%</td><td>+0.2</td><td>3 runs; the single-run +2.0 candidate died in triplication (p=1.0)</td></tr>
+        <tr><td>gpt-5-mini</td><td>85.3%</td><td>86.0% @ 71%</td><td>+0.7</td><td>single run; flat</td></tr>
+        <tr><td>gemini-3.1-flash-lite</td><td>82.2%</td><td>81.1% @ 71%</td><td>&minus;1.1</td><td>3 runs; pooled p=0.47 — noise</td></tr>
+        <tr><td><b>gemini-3.5-flash-lite</b></td><td>79.3%</td><td><b>83.3%</b> @ 71%</td><td><b>+4.0</b></td><td><b>3 runs; pooled McNemar p=0.011 (32 vs 14 flips, 450 pairs)</b></td></tr>
+        <tr><td>gpt-5.2 (compresr's reader)</td><td>78.0%</td><td>79.3% @ 71%</td><td>+1.3</td><td>single run; flat. Their subset baseline claim was 73%</td></tr>
+        <tr><td><b>Claude Haiku 4.5</b></td><td>72.0%*</td><td><b>78.0%</b> @ 71%</td><td><b>+6.0</b></td><td>*18/150 filings exceed its 200K window — compression makes them answerable</td></tr>
+        <tr><td><b>Qwen 3.6-27B (Groq, ~33k window)</b></td><td>20.0%**</td><td><b>37.3%</b> (v9-RL @ 22%)</td><td><b>+17.3</b></td><td>**109/150 filings cannot be sent at all; the deep RL config fits 84 and answers 66.7% of those. Depth without answer-preservation is worthless: prod bear-2 @ 4.3% fits everything, scores 4.7%</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>Strong-reader hunt closed (27.07).</b> A 4-config sweep on Sonnet 5 and gpt-5.5 (light-touch
+    bear-2@0.3, v7.1-safetab@0.5, dscale@0.3, v9-RL budget33+safetab) found no positive cell; the one
+    candidate (gpt-5.5 + bear-2@0.3, +2.0 single-run) regressed to +0.2 (p=1.0, 450 pairs) in triplication.
+    Frontier readers get <i>parity at roughly half the tokens</i> — their long-context handling leaves nothing
+    for compression to rescue. The pattern across the matrix: <b>the accuracy delta is the inverse of the
+    reader's effective long-context competence</b> — flat on frontier readers, +4 on long-context-weak ones
+    (concentrated on &gt;90k-token filings: +7.0 pp there), and largest where the window itself is the binding
+    constraint (+6 Haiku, +17.3 Qwen). Defensible claims, strongest first: (1) +4.0 pp on Gemini 3.5
+    Flash-Lite, replicated, p=0.011; (2) no significant accuracy cost on any of 8 readers; (3) for
+    window-limited serving stacks, deep RL compression converts an unrunnable workload into a runnable one;
+    (4) on compresr's own reader our full-150 baseline (78.0%) exceeds the 73% they report on their
+    128-question subset.</p>
+    <p><b>E37 — line-atomic selection: negative.</b> Rendering the RL champion's scores as whole-line budgets
+    (intact rows/sentences) LOST to word-level at both deep budgets (71.3 vs 74.0 @ 22%; 70.7 vs 75.3 @ 33%).
+    The policy's probabilities are calibrated to the word action space it was trained in — swapping the render
+    at inference breaks them (the ettin lesson again). Line-level selection would need line-level training;
+    dropped.</p>
+  </div>
+
   <h2>Training recommendations</h2>
   <ol class="recs">
     <li><b>Ship number protection now, before any retraining.</b> Auto-wrapping numerics in <code>&lt;ttc_safe&gt;</code>
@@ -374,6 +413,31 @@
       <tr><td>E30</td><td>Fable 5 oracle ABSTRACTIVE compressor (may restructure/normalize tables; forbidden to compute or answer)</td><td>fable5_abstract.py</td><td>full&rarr;oracle probe</td><td>done 25.07: <b>3/17 flipped</b> (Q14 FCF-conversion, Q23 quick-ratio, Q141 wages%) at 0.6-14% retention, leak-checked — restructuring (labels+units+periods on raw figures) unlocks reader arithmetic that selection alone cannot; motivates E31 labeled-render rule</td></tr>
       <tr><td>E31</td><td>Heuristic labeled-render (banner = nearest title/units/period above each kept table region) on both champions</td><td>e31_label_render.py</td><td>full</td><td>done 26.07: <b>NEGATIVE</b> — v7.1-safetab@0.5 82.7&rarr;80.7 (+3/&minus;6), dscale-safetab@0.3 84.0&rarr;78.7 (+3/&minus;11), hard-17 untouched. Misattached labels mislead; E30's effect needs correct per-figure table structure, not proximity heuristics</td></tr>
       <tr><td>E32</td><td>Wave-2 SFT transfer evals (wide-halo masks; w2-140 / w2-140-s2 / w2-ettin-400m + s2 epoch-4)</td><td>v8_train.py / v8_eval_precompress.py</td><td>full</td><td>done 26.07: ettin best (78.7% @ 51%, 60.7% @ 22%); no wave-2 run beat wave-1's 68.0% @ 22%; inversion replicated (ep4 62.0 &gt; full 57.3 at budget22)</td></tr>
+      <tr><td>E60</td><td>Multi-reader Hebbia curve: v11b budget33-80 on GPT-5.5, GPT-5.2, Sonnet 5, Haiku 4.5, gpt-5-mini readers (each vs its own full-context control; flash-lite already 3-run)</td><td>run_benchmark.py per-reader</td><td>full</td><td>done 28.07, key points TRIPLICATED: <b>gain scales inversely with reader strength.</b> Haiku 4.5 (ctrl 72.0): +4.0..+8.0 ABOVE control at every point; b50 = 80.0/80.0/80.0 (3-run, zero variance) — <b>+8.0 triplicated</b>. gpt-5-mini (85.3): parity-to-+1.3. GPT-5.5 (ctrl 86.7): 3-run means 86.0/86.2/87.3 at 67/50/20% removed — <b>statistical parity across the whole range: zero accuracy loss at 3x on a frontier reader</b> (single-run "gains" washed out under triplication, as E42 predicts). GPT-5.2 (78.0): b50 3-run mean 79.3 (+1.3). gpt-5-mini b40 3-run mean 85.6 (+0.2). GPT-5.5 b90 86.7 = control (parity holds 10-67% removed). Sonnet 5 (ctrl 88.0): monotone dial, 3-run -4.0 @ 67% / -2.4 @ 50% / -1.1 @ 20%, <b>parity at 10% removed (b90 88.0)</b>. Gemini 3.5 Flash (ctrl 89.3, strongest): full curve -0.7..-3.3 (b33 86.7 / b40 86.0 / b50 86.7 / b66 88.7 / b80 88.0) — same tunable-dial shape as Sonnet. Deck framing: accuracy LIFT for cost-tier readers; frontier readers = same accuracy at 1/3 tokens (GPT-5.5) or a tunable 1-4pp dial (Sonnet)</td></tr>
+      <tr><td>E59</td><td>v12a: first full-doc-corpus model — 6000 v12 QA (zero FinanceBench filers, real full-filing windows, 14.6% far negatives, 16.6% dense mix), v11b recipe/warm otherwise</td><td>v12_pretokenize.py / v8_train.py v12a</td><td>full + oracle + external</td><td>done 28.07 (single runs): <b>FULL FILINGS b22 77.3 / b33 79.3-single (3-run mean 77.6 = control parity) / b66 80.0 — control-level at 3x, trained fully out-of-domain</b> — the recipe+data design generalizes; seed42's 81.1 stays the artifact-luck delta. MISS: dense mix did NOT fix the dense regime — oracle b33 46.7 (vs v11b 52.0), TAT-QA b33 77.3 (vs 81.3), FinQA tied. Dense collapse needs serving-side top-P/calibration or a much larger dense fraction, not a 16.6% mix. Val AUPRC 0.7227 (campaign high) again failed to predict the transfer ordering</td></tr>
+      <tr><td>E58</td><td>v11b seed robustness: retrain the champion recipe with seeds 7 and 99 (identical data/warm/config), eval bare budget22/33</td><td>v8_train.py v11b_s2/s3</td><td>full</td><td>done 28.07: <b>the 81.1 @ 33% does NOT replicate across training seeds</b> — b33: 81.1 (s42, 3 answer-runs) / 77.3 (s7) / 76.7 (s99); recipe mean ≈ the 78.7 control, seed42 is a strong ARTIFACT. Claims must be checkpoint-based ("our production model"), not recipe-based. Softens the e55-family verdict: e55c's 77.3 sits inside the seed spread. NEW FIND: seed7 b22 TRIPLICATED = 78.7/78.0/77.3, mean 78.0 — <b>near-parity with the 78.7 control at 4.5x</b>, best 22%-kept model on record</td></tr>
+      <tr><td>E55</td><td>Discovered labels v1: SFT on reader-verified minimal-sufficient keep-sets (E54 search: 3 passes + deep, alt-minima 0.6 tier, v10-context demoted to 0.25, leakage down-weight), v11b recipe otherwise</td><td>e54_label_discovery.py / e55_merge_labels.py / v8_train.py e55</td><td>full</td><td>done 28.07: <b>NEGATIVE — b22 69.3 / b33 73.3 vs v11b 76.0 / 81.1.</b> Mechanistic diagnosis (14 flips read): budget selections fill with cover-page boilerplate — hard-zeroing every non-answer numeral at 1.5x collapsed table-numeric probs wholesale, leaving generic prose/headers ranked above numbers. Necessity is the right ORDERING signal but cannot replace the structural scaffold v10 taught. Curiosity: natural tau 0.3 = 42.7% @ 3.4% kept (extreme per-token efficiency). Corrective arm e55b (necessity reorders WITHIN the v10 keep-set: core 1.0 &gt; alt 0.8 &gt; v10-context 0.5): <b>b22 76.0 — ties v11b exactly — but b33 75.3 vs 81.1</b>; the flat 0.5 context tier erases v10's graded internal ordering that v11b exploits in the 22→33% band. ARM CONCLUDED: discovered-minimal labels lose to scaffold labels as SFT targets; adopt necessity as REWEIGHTING within scaffold labels for v12, not as replacement. Third variant e55c (v11 labels verbatim + repair-only: add reader-verified missing evidence on the 474 insufficient items, up-weight breakers) also failed to recover b33: 76.7/77.3 — <b>every way of injecting search output into targets lands 73-77 @ b33 vs v11b's 80.7-82 (3 runs); the label-search-as-targets axis is CLOSED on this corpus</b>. E54 search remains valid data: 24% of v10 label sets could not answer their own question; reader needs only 8.6% of an evidence chunk; per-item min-k feeds adaptive dosing</td></tr>
+      <tr><td>E56</td><td>Dense external eval: TAT-QA + FinQA dev (150 numeric QA each, short table+text contexts), v11b budgets + natural taus vs raw, flash-lite reader</td><td>dense_finance_eval.py</td><td>external</td><td>done 28.07: <b>at 34% tokens removed v11b is at-or-above raw on dense contexts</b> — TAT-QA 90.7 vs 88.7 raw (+2.0), FinQA 58.7 vs 60.0 (-1.3). At 67% removed dense costs ~7pp (TAT-QA 81.3, FinQA 53.3) vs +2.4 on long filings — density story confirmed. KEY MECHANISM SPLIT: at MATCHED ~25-33% retention, budget top-k beats natural threshold by 8-30pp — tau spends its budget badly on dense text, so the oracle "collapse" is partly a serving-mode artifact, not purely the model. Naturals collapse everywhere; budget serving is the mode</td></tr>
+      <tr><td>E53</td><td>Oracle recovery sweep: v11b on evidence pages at budget50/66/80 (does the oracle collapse fix itself at low compression?)</td><td>v8_eval_precompress.py + run_benchmark.py</td><td>oracle</td><td>done 28.07: <b>NO — accuracy climbs near-linearly with retention (38.0/52.0/62.7/70.0/77.3 at 22/33/50/66/80% kept) and is still -5.4pp below the 82.7 control at 80% kept.</b> On dense all-evidence pages v11b's ranking adds almost nothing: losses are ~proportional to what's dropped. It's a ranking failure, not budget starvation — trained on full-filing windows where most content is droppable, it has no signal for pages where nothing is. Serving implication: route by context size (compress big filings, bypass or &ge;80% short dense contexts); training fix: v12 dense-window mix</td></tr>
+      <tr><td>E50</td><td>Held-out generalization: 300 v12-corpus QA (fresh EDGAR filings 2018-2026, Claude-written questions, 220 tickers disjoint from both v11 training AND FinanceBench), raw vs v9-RL vs v11b at budget33, same reader+judge</td><td>heldout_eval.py</td><td>held-out</td><td>done 28.07: <b>v11b generalizes — raw 95.3 / v11b 93.7 / v9-RL 90.7.</b> Within 1.6pp of uncompressed at 3x on fully disjoint companies, and the +3.0 margin over v9-RL survives out-of-selection → the 81.1% champion is not benchmark memorization. The above-control effect does NOT replicate here (corpus easier: raw near ceiling; docs smaller → less distraction to remove). Loss concentrates in domain-qualitative (85 vs 92); numeric extraction intact (metrics 99, multistep 97)</td></tr>
+      <tr><td>E52</td><td>v11b retention curve (budget40/50, later 66/80) + rules-subsumption test (budget33/22 + safetab2 on top of v11b)</td><td>v8_eval_precompress.py</td><td>full</td><td>done 28.07, TRIPLICATED (E57): <b>one model at-or-above the 78.7 control across the entire 20-67% tokens-removed range</b> — removed 20%: 80.4 (+1.7) / 34%: 78.0 (-0.7) / 50%: 80.7 (+2.0) / 60%: 78.9 (+0.2) / 67%: 81.1 (+2.4); 3x150 per point; best at the DEEPEST point. The Hebbia headline curve. Rules test: adding safetab2 to v11b costs accuracy AND retention (b33+st2 78.7 @ 51.5% kept vs bare 81.1 @ 33%) — <b>the v11 labels fully subsume the serving rules; ship bare budgets</b></td></tr>
+      <tr><td>E51</td><td>Eval-v2 bug tax, complete 3-arm table (nominal-22 / cost-matched-24 / nominal-33; paired McNemar)</td><td>v8_eval_precompress.py EVAL_V2 + fleet_gemini_modal.py + PARITY.md §6</td><td>full</td><td>done 28.07: <b>v2 accuracy-neutral, 6-7% cheaper</b> — A: 74.0 vs 74.0 (p=1.0, -7.4% chars); B cost-matched: -0.7 (p=1.0) — reclaimed budget buys nothing at the margin; C: +2.0 but 9/6 discordants = chance. ADOPTED as default for new work; v1 history frozen. Whitespace bug was pure cost. Campaign rankings unaffected. Process lesson: cheap upper-bound predictors (gold-number survival) called it before 900 API calls did</td></tr>
+      <tr><td>E49</td><td>v11b characterization: 8-level natural-threshold sweep, oracle-regime test, kept-set swap probes</td><td>v8_eval_precompress.py (+Jaccard probe)</td><td>full + oracle</td><td>done 28.07: natural curve NOT Pareto — one good point (tau 0.05: 78.0% @ 28%) but budgets dominate and the whole useful range sits in a tau 0.02-0.05 cliff (unshippable knob; budget-pinned serving is the mode). ORACLE-regime collapse (38-52% vs 82.7 control) — v11b is a full-filings specialist. PROBE CORRECTION: kept-set Jaccard@22% under question swap = 0.229 (v11b) / 0.183 (v9-RL) — 77-82% of the kept set reorders per question; the lineage IS strongly query-conditioned at selection level, and the historical mean-|dP| probe (0.019-0.047 across all models) was measuring the wrong statistic</td></tr>
+      <tr><td>E48</td><td>RL stacking on v11b (v9 RWR recipe, KL 0.3, segmentation-clean v9-rl-c data)</td><td>v9_rwr_train.py</td><td>full</td><td>done 28.07: <b>NEGATIVE — RL does not stack.</b> Val peaked 0.875 (all-time high) but transfer LOST ~3pp at both budgets (72.7/78.0 vs v11b's 76.0/81.1). Sixth val-transfer inversion. The v11 labels already encode what the answer-survival reward teaches; further RL on the same 2k items exploits the reward set. v11b pure SFT remains champion</td></tr>
+      <tr><td>E47</td><td>v10/v11 rule-retiring SFT wave: selective-numeric labels (evidence numbers 4x-weighted keeps, other numerals weighted drops) + header/row-label propagation ± serving-matched windows + line-type features; warm a=v7.1 / b=w2-ep4</td><td>v10_build_targets.py / v11_pretokenize.py / v8_train.py</td><td>full</td><td>done 28.07: <b>v11b IS THE NEW CHAMPION — bare budget33 81.1% @ 33% kept (3-run: 80.7/80.7/82.0), +5.8 over the v9-RL record and +2.4 ABOVE the uncompressed control at 3x, no rules</b>; bare budget22 76.0 mean (+2.0 over RL). Ablation: labels alone (v10b) ≈ RL-level; windows+features add +4-5; w2-ep4 warm &gt; v7.1 warm (5th replication). Pure SFT beat the RL champion — the rules are learned in. RL-on-v11b stacking round in flight</td></tr>
+      <tr><td>E46</td><td>Table-threshold fix: safetab2 (&ge;2 numeric cells) vs safetab (&ge;3), from the blind-spot diagnostic's causal story (2-column balance sheets unprotected by the &ge;3 threshold across masks, rules, and selectors)</td><td>v8_eval_precompress.py safetab2/safetab2a</td><td>full</td><td>done 28.07: <b>REPLICATED WIN — budget22-safetab2 78.7% (3-run mean) vs 74.9%, McNemar p=0.0095</b> (+3.8pp at +1.3pp retention); equals the uncompressed control at 48% kept (2.1x). budget33 sign-flipped in single runs (unresolved noise). Anchored variant (&ge;2 AND last-word-numeric) +2.0 single-run; v12 masks adopt anchored — measured +26pp blind-spot recall at +0.8pp prose FP</td></tr>
+      <tr><td>E45</td><td>dscale-financial data-scaling ladder: 16M and 64M vs the 0.5M champion (same query-blind pipeline)</td><td>precompress_v71.py</td><td>full</td><td>done 28.07: FLAT — 16M safetab@0.3 80.7%, 64M 79.3% vs 0.5M's replicated 83.3%; plain configs identical (76.7). 128x domain data buys nothing; objective and labels are the levers, not volume</td></tr>
+      <tr><td>E44</td><td>Evidence-rank segmentation: r* = retention at which each of 3,876 gold numbers first survives</td><td>segment.py + EVIDENCE_NUMBERS dump</td><td>full</td><td>done 28.07: failures 3.3x enriched in BLIND SPOTS (r*&gt;50%) vs 1.7x near-misses; 90.4% of blind-spot lines are PRIMARY statement rows (balance sheet 37 / cash flow 18 / income 9 / notes 6 — two-column tables, see E46); 8.1% of gold numbers absent from extracted text entirely (PDF-extraction ceiling). v12 = data-first, RL second</td></tr>
+      <tr><td>E43</td><td>Adaptive confidence dosing (tau/floor/cap policies at matched mean retention) + calibration analysis</td><td>v8_eval_precompress.py adose* variants</td><td>full</td><td>done 28.07: <b>KILLED</b> — every policy loses to fixed budget (best -2.0pp); mechanism = Jensen penalty on concave acc-retention curve (starving -16.7 costs 3x feeding +5.7) with zero router signal (Spearman 0.014). Oracle "90.7%" debunked as verdict-flip noise (best-of-3-identical-runs = 85-87%). Budget22 failures: 49% evidence present but reader failed, 51% evidence lost. Cap useful (8 items reclaim ~17pp retention free), floor starves easy questions</td></tr>
+      <tr><td>E42</td><td>Variance decomposition: re-judge saved answers 3x (gpt-5-mini) + cross-judge (gpt-5.2, Sonnet 5) + temp=0 reader pair</td><td>e42_judge_variance.py</td><td>full</td><td>done 28.07: judge-DRAW noise tiny (1.3-4% flips on same answers) — <b>3-vote judge panel unnecessary</b>; READER variance dominates (7.3-10% flips survive majority judging; temp=0 does not help — 6% identical answers); judge MODEL shifts level ±4pp (5.2 harsh, Sonnet lenient) but config ordering preserved (93-97% agreement). Measurement rule: triplicate-and-mean, footnote the judge</td></tr>
+      <tr><td>E41</td><td>Structured table render v1 — real column-period parsing (period-header defines K columns; rows rewritten ONLY when value count == K)</td><td>e41_table_render.py</td><td>full</td><td>done 28.07: fixes E31's misattribution (+4.0 vs heuristic on dscale) but does NOT beat unrendered — 82.7 vs 83.3-84.0 (dscale), 81.3 vs 82.7 (v7.1-safetab), and <b>-4.0 on bare v9 budget33</b> (71.3 vs 75.3; multi-span headers degrade to ambiguous bare-year columns). E30's effect needs full restructuring (period qualifiers + unit normalization), not row labels alone — v2 direction, or fold into training targets</td></tr>
+      <tr><td>E40</td><td>taaha's bear-v7.2-rl-focus-v4 (focus-grpo-contrast-gen4, 26.07 overnight)</td><td>v8_eval_precompress.py</td><td>full</td><td>done 27.07: family best at aggressive-mid band (safetab@0.3 74.0% @ 42%, vs v3's 76.7% @ 44%) but raw budgets still weak (40.7% @ 22% vs v9-RL 74.0) — fourth revision, same query-signal gap</td></tr>
+      <tr><td>E39</td><td>ALAN's bear-v8-fin cold family: a3punct-coldonmix + a3punct-coldfull (a3/a4 pretokenizer × mask-style grid on volume)</td><td>v8_eval_precompress.py</td><td>full</td><td>done 27.07: coldfull-safetab@0.5 single-run 84.7% REGRESSED to <b>82.7% 3-run mean @ 59%</b> — joins the v7.1/dscale top cluster (82.7-83.3), does not lead it. coldonmix v7.1-class (79.3% @ 71%). Raw budgets weak both (38.7-43.3% @ 22%). Replication catches its third single-run mirage this weekend</td></tr>
+      <tr><td>E38</td><td>Qwen 3.6-27B reader (Groq, Hebbia's serving family): capacity-rescue cell</td><td>run_benchmark.py, Groq endpoint</td><td>full</td><td>done 27.07: control 20.0% (109/150 filings overflow the ~33k window even at 71% kept); <b>v9-RL @ 22% = 37.3% (+17.3, near-2x)</b> — the matrix's largest delta; bear-2@4.3% fits everything but scores 4.7%</td></tr>
+      <tr><td>E37</td><td>Line-atomic budget render of the RL champion (max-pooled line scores)</td><td>v8_eval_precompress.py linebudget variants</td><td>full</td><td>done 27.07: NEGATIVE — 71.3/70.7 vs 74.0/75.3 at 22/33%; action-space train/serve mismatch; dropped</td></tr>
+      <tr><td>E36</td><td>Reader &times; compression delta matrix: 8 readers, key cells triplicated, paired McNemar</td><td>run_benchmark.py (+ANSWER_PROVIDER=anthropic path)</td><td>full</td><td>done 27.07: 3.5-flash-lite +4.0 p=0.011 (replicated); Haiku +6.0 (window rescues); Qwen +17.3; strong readers flat (gpt-5.5 candidate died in triplication +0.2 p=1.0); delta = inverse of reader long-context competence</td></tr>
+      <tr><td>E35</td><td>PROD bear-2 reference (live API, full filings, 5 levels)</td><td>precompress_prod_bear1.py, PROD_MODEL=bear-2</td><td>full</td><td>done 26.07: 82.0% @ 77% and 80.0% @ 60% with zero rules — above control at 1.3-1.7x; collapses below ~50% kept (55.3% @ 30%, 6.7% @ 4.3%) where v9-RL holds 75.3% @ 33%</td></tr>
+      <tr><td>E34</td><td>taaha's bear-v7.2-rl-focus-v3, native 2048 ctx, full filings</td><td>v8_eval_precompress.py</td><td>full</td><td>done 26.07: with rules competitive but below champions (safetab@0.3 80.7% @ 66%); raw pinned budgets weak (38.7% @ 22% vs v9-RL 74.0) — v3's ranking still needs rule scaffolding</td></tr>
       <tr><td>E33</td><td>v9 RL — RWR with end-to-end answer-survival reward (K=6 masks, KL-to-ref, no judge; NaN-Gumbel bug found+fixed in source trainer)</td><td>v9_rl_prep.py / v9_rwr_train.py</td><td>full</td><td>done 26.07 (round 1): FINAL: <b>kl03 stable ckpt is the champion — 74.0% @ 22% (+6.0 over the wave-1 record, 4.7 pp from control), 75.3% @ 33%, 80.0% @ 55%</b>. Follow-on rounds all resolved negative: iter2/iter3 (same reward data) gained val but lost transfer (71.3 @ 22 — reward-set exploitation); fresh-data round flat (0.71 — 140M lineage saturated); ettin RL gained +15 val but broke on the serving path (60.0 @ 22). One RL step from the right SFT init captured the whole gain. Rewards: LEDGAR 289 / SECQUE 58 regenerated for future rounds</td></tr>
     </tbody>
   </table>
@@ -469,6 +533,11 @@ const MASTER = {
     ["old", 84, 75.3, "E21 dscale-financial-0.5M safetab @0.3"], ["old", 76, 75.3, "E21 dscale-financial-0.5M safetab @0.5"], ["old", 67, 69.3, "E21 dscale-financial-0.5M safetab @0.7"],
     ["v72", 43, 41.3, "E22 ws72 plain @0.3"], ["v72", 32, 30.0, "E22 ws72 plain @0.5"], ["v72", 20, 12.7, "E22 ws72 plain @0.7"],
     ["v72", 65, 66.7, "E22 ws72 safetab @0.3"], ["v72", 58, 70.7, "E22 ws72 safetab @0.5"], ["v72", 52, 50.0, "E22 ws72 safetab @0.7"],
+    ["v8", 22, 38.0, "E49 v11b budget22 ORACLE — full-filings specialist collapses on dense evidence pages", 1],
+    ["v8", 33, 52.0, "E49 v11b budget33 ORACLE"],
+    ["v8", 50, 62.7, "E53 v11b budget50 ORACLE"], ["v8", 66, 70.0, "E53 v11b budget66 ORACLE"],
+    ["v8", 80, 77.3, "E53 v11b budget80 ORACLE — still -5.4 below control at 80% kept"],
+    ["v8", 6.5, 12.7, "E49 v11b natural tau 0.3 ORACLE"],
   ]},
   masterB: { title: "Full filings (~121k tokens)", control: 78.7, pts: [
     ["v71", 51, 72.7, "v7.1 plain @0.3"], ["v71", 40, 70.0, "v7.1 plain @0.5"], ["v71", 27, 62.0, "v7.1 plain @0.7"],
@@ -523,6 +592,28 @@ const MASTER = {
     ["v8", 42, 75.3, "E32 w2-ettin budget22+safetab"],
     ["v8", 51, 78.7, "E32 w2-ettin budget33+safetab — wave-2 SFT best", 1],
     ["v8", 22, 74.0, "E33 v9-RL kl03-stable budget22 — 4.5x record, 4.7 pp from control", 1],
+    ["v8", 48, 78.7, "E46 v9-RL budget22+safetab2 — control parity at 2.1x (3-run mean, p=0.0095 vs safetab)", 1],
+    ["v8", 33, 81.1, "E47 v11b bare budget33 — NEW CHAMPION: above control at 3x, no rules (3-run mean)", 1],
+    ["v8", 22, 76.0, "E47 v11b bare budget22 (3-run mean)", 1],
+    ["v8", 40, 78.9, "E52 v11b bare budget40 (3-run mean)"], ["v8", 50, 80.7, "E52 v11b bare budget50 (3-run mean)", 1],
+    ["v8", 66, 78.0, "E52 v11b bare budget66 (3-run mean)"], ["v8", 80, 80.4, "E52 v11b bare budget80 (3-run mean)"],
+    ["v8", 51.5, 78.7, "E52 v11b budget33+safetab2 (rules SUBSUMED: +18.5pp retention, no accuracy)"],
+    ["v8", 45, 80.0, "E52 v11b budget22+safetab2 (rules subsumed)"],
+    ["v8", 22, 69.3, "E55 discovered-labels v1 budget22 (NEGATIVE: boilerplate fill)"],
+    ["v8", 33, 73.3, "E55 discovered-labels v1 budget33 (NEGATIVE)"],
+    ["v8", 3.4, 42.7, "E55 discovered-labels natural tau 0.3 — extreme token efficiency"],
+    ["v8", 22, 76.0, "E55b scaffold+necessity budget22 (ties v11b)"],
+    ["v8", 33, 75.3, "E55b scaffold+necessity budget33 (still -5.8 vs v11b)"],
+    ["v8", 22, 76.7, "E55c label-repair budget22"],
+    ["v8", 33, 77.3, "E55c label-repair budget33 — family ceiling; axis closed"],
+    ["v8", 22, 78.7, "E58 v11b seed7 budget22 — control parity at 4.5x (single run)", 1],
+    ["v8", 33, 77.3, "E58 v11b seed7 budget33"], ["v8", 33, 76.7, "E58 v11b seed99 budget33"],
+    ["v8", 22, 76.0, "E58 v11b seed99 budget22"],
+    ["v8", 22, 77.3, "E59 v12a full-doc corpus budget22"],
+    ["v8", 33, 79.3, "E59 v12a full-doc corpus budget33 — out-of-domain trained, above control", 1],
+    ["v8", 66, 80.0, "E59 v12a full-doc corpus budget66"],
+    ["v8", 95.5, 76.7, "E49 v11b natural tau 0.02"], ["v8", 27.9, 78.0, "E49 v11b natural tau 0.05"],
+    ["v8", 11.1, 65.3, "E49 v11b natural tau 0.10"], ["v8", 5.0, 52.7, "E49 v11b natural tau 0.20"],
     ["v8", 33, 75.3, "E33 v9-RL kl03-stable budget33"],
     ["v8", 55, 80.0, "E33 v9-RL kl03-stable budget33+safetab"],
     ["v8", 22, 73.3, "E33 v9-RL s2ep4 unstable-peak budget22 (+11.3 over its init)"],
@@ -535,6 +626,22 @@ const MASTER = {
     ["v8", 22, 60.0, "E33 v9-RL ettin budget22 (val +15 did NOT transfer)"],
     ["v8", 29, 72.7, "E33 v9-RL ettin safetab @0.3"],
     ["v8", 51, 78.0, "E33 v9-RL ettin budget33+safetab"],
+    ["v72", 46, 62.7, "E34 v7.2-rl-focus-v3 plain @0.3"],
+    ["v72", 66, 80.7, "E34 v7.2-rl-focus-v3 safetab @0.3"],
+    ["v72", 44, 76.7, "E34 v7.2-rl-focus-v3 safetab @0.5"],
+    ["v72", 22, 38.7, "E34 v7.2-rl-focus-v3 budget22 (raw ranking weak at depth)"],
+    ["v72", 33, 51.3, "E34 v7.2-rl-focus-v3 budget33"],
+    ["v71", 77, 82.0, "E35 PROD bear-2 @0.3 (live API)", 1],
+    ["v71", 60, 80.0, "E35 PROD bear-2 @0.5 (live API)"],
+    ["v71", 30, 55.3, "E35 PROD bear-2 @0.7 (collapses at depth)"],
+    ["v71", 4.3, 6.7, "E35 PROD bear-2 @0.9"],
+    ["v72", 46, 79.3, "E39 fin-coldonmix safetab @0.3 (71% kept)"],
+    ["v72", 22, 43.3, "E39 fin-coldonmix budget22"],
+    ["v72", 59, 82.7, "E39 fin-coldfull safetab @0.5 — top cluster (3-run mean)", 1],
+    ["v72", 22, 38.7, "E39 fin-coldfull budget22"],
+    ["v72", 42, 74.0, "E40 focus-v4 safetab @0.3 — family best at 2.4x", 1],
+    ["v72", 33, 52.7, "E40 focus-v4 budget33"], ["v72", 22, 40.7, "E40 focus-v4 budget22"],
+    ["v72", 56, 77.3, "E40 focus-v4 budget33+safetab"],
   ]},
   masterC: { title: "Full filings — gpt-5-mini answerer (E28; separate reader, own control)", control: 85.3, pts: [
     ["old", 71, 86.0, "5mini: dscale-fin safetab @0.3 — beats gpt-5-mini's own full-context control", 1],
@@ -548,9 +655,13 @@ const FAMC = { old: "var(--s1)", v71: "var(--s4)", rules: "var(--s5)", v72: "var
 // campaign (v8 SFT + v9 RL) AND any config using otso's serving inventions
 // (keep-rules safe*/weld, budget pinning, fusion, focused gating, label-render)
 // on taaha's models; taaha = his models served plain.
-const OWNC = { taaha: "var(--s2)", otso: "var(--s7)" };
+const OWNC = { taaha: "var(--s2)", otso: "var(--s7)", alan: "var(--s3)" };
 const OTSO_SERVE = /safe|weld|budget|fuse|labelrender|label-render|focused|rank-budget|lexical|compose/i;
-const ownerOf = (fam, label) => (fam === "v8" || OTSO_SERVE.test(label || "")) ? "otso" : "taaha";
+// Base-model ownership: otso = v8/v9 lineage; alan = bear-v8-fin cold family (E39);
+// taaha = everything else. Any config using otso's serving layer colors otso.
+const ALAN_MODELS = /fin-cold|fincold|finconmix/i;
+const ownerOf = (fam, label) => (fam === "v8" || OTSO_SERVE.test(label || "")) ? "otso"
+  : ALAN_MODELS.test(label || "") ? "alan" : "taaha";
 Object.entries(MASTER).forEach(([id, cfg]) => {
   const colorOf = (fam, label) => id === "masterB" ? OWNC[ownerOf(fam, label)] : FAMC[fam];
   const svg = document.getElementById(id);
@@ -560,10 +671,12 @@ Object.entries(MASTER).forEach(([id, cfg]) => {
   const y = v => M.t + (1 - v / 95) * ih;
   el(svg, "text", { x: M.l, y: 16, "font-size": 12.5, "font-weight": 600, fill: "var(--ink-2)" }).textContent = cfg.title;
   if (id === "masterB") {
-    el(svg, "circle", { cx: W - 400, cy: 12, r: 4.5, fill: OWNC.taaha });
-    el(svg, "text", { x: W - 392, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "taaha's models, plain";
-    el(svg, "circle", { cx: W - 262, cy: 12, r: 4.5, fill: OWNC.otso });
-    el(svg, "text", { x: W - 254, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "otso's (v8/v9 + rules/budgets/fusion serving)";
+    el(svg, "circle", { cx: W - 520, cy: 12, r: 4.5, fill: OWNC.taaha });
+    el(svg, "text", { x: W - 512, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "taaha's models, plain";
+    el(svg, "circle", { cx: W - 384, cy: 12, r: 4.5, fill: OWNC.alan });
+    el(svg, "text", { x: W - 376, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "alan's (fin-cold), plain";
+    el(svg, "circle", { cx: W - 250, cy: 12, r: 4.5, fill: OWNC.otso });
+    el(svg, "text", { x: W - 242, y: 16, "font-size": 11, fill: "var(--ink-2)" }).textContent = "otso's (v8/v9 + rules/budgets/fusion serving)";
   }
   for (let v = 0; v <= 90; v += 15) {
     el(svg, "line", { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
@@ -579,6 +692,7 @@ Object.entries(MASTER).forEach(([id, cfg]) => {
   // series lines: group points by config series (label minus its sweep suffix),
   // fuse2 budget sweep grouped by v7.1 threshold so f10->f90 connect
   const seriesOf = label => {
+    if (/v11b.*ORACLE/i.test(label)) return "v11b oracle sweep";
     let base = label.replace(/\s+[—-]{1,2}\s+.*$/, "").replace(/\s*\(.*\)\s*$/, "").trim();
     let m = base.match(/^fuse2 f\d+ @(0\.\d+)$/);
     if (m) return "fuse2 sweep @" + m[1];
@@ -587,6 +701,17 @@ Object.entries(MASTER).forEach(([id, cfg]) => {
                .replace(/^(focusfix line-max) \d+%$/, "$1")
                .replace(/^(E\d+ (?:fd )?[\w.∪-]+(?: safetab| safenum| plain| budget\d+(?:\+safetab)?)?).*$/, "$1");
   };
+  // Pareto flags (masterB filter): a point is non-dominated when no other point
+  // keeps <= tokens AND scores >= accuracy (strictly better on one axis). A
+  // SERIES qualifies if any of its points is on that frontier.
+  const nonDom = p => !cfg.pts.some(q => q !== p && q[1] <= p[1] && q[2] >= p[2]
+                                    && (q[1] < p[1] || q[2] > p[2]));
+  const paretoSeries = new Set();
+  if (id === "masterB") {
+    cfg.pts.forEach(p => { if (nonDom(p)) paretoSeries.add(seriesOf(p[3])); });
+  }
+  const nparClass = label =>
+    (id === "masterB" && !paretoSeries.has(seriesOf(label))) ? " npar" : "";
   const groups = {};
   cfg.pts.forEach(p => (groups[seriesOf(p[3])] ??= []).push(p));
   Object.values(groups).forEach(pts => {
@@ -594,17 +719,27 @@ Object.entries(MASTER).forEach(([id, cfg]) => {
     const sorted = [...pts].sort((a, b) => b[1] - a[1]);
     el(svg, "path", { d: sorted.map((p, i) => (i ? "L" : "M") + x(p[1]) + " " + y(p[2])).join(" "),
       fill: "none", stroke: colorOf(sorted[0][0], sorted[0][3]), "stroke-width": 1.6, opacity: 0.55,
-      "class": "master-line", "stroke-linejoin": "round" });
+      "class": "master-line" + nparClass(sorted[0][3]), "stroke-linejoin": "round" });
   });
   cfg.pts.forEach(([fam, ret, acc, label, star]) => {
     el(svg, "circle", { cx: x(ret), cy: y(acc), r: star ? 5.5 : 4.5, fill: colorOf(fam, label),
       stroke: "var(--surface)", "stroke-width": 1.5, opacity: star ? 1 : 0.85,
+      "class": "master-pt" + nparClass(label),
       "data-tip": label + "\ntokens kept " + ret + "%\naccuracy " + acc + "% ± " + ci95(acc).toFixed(1) });
     if (star) {
-      el(svg, "text", { x: x(ret) + 8, y: y(acc) - 6, "font-size": 10, fill: "var(--ink-2)" }).textContent = label;
+      el(svg, "text", { x: x(ret) + 8, y: y(acc) - 6, "font-size": 10, fill: "var(--ink-2)",
+        "class": "master-lbl" + nparClass(label) }).textContent = label;
     }
   });
   bindTips(svg);
+});
+// Pareto filter (masterB): hide series that never reach the frontier
+const _pt = document.getElementById("paretotoggle");
+let _paretoOnly = false;
+_pt.addEventListener("click", () => {
+  _paretoOnly = !_paretoOnly;
+  _pt.textContent = "Pareto series only: " + (_paretoOnly ? "on" : "off");
+  document.querySelectorAll(".npar").forEach(e => e.style.display = _paretoOnly ? "none" : "");
 });
 // line toggle (default: on)
 const _lt = document.getElementById("linetoggle");

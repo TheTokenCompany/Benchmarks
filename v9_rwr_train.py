@@ -109,8 +109,16 @@ def _optional_secrets(names):
     return out
 
 
-# gemini-api-secret carries GEMINI_API_KEY (taaha's; it is the only place that key
-# lives -- it is NOT in AWS Secrets Manager).
+# gemini-api-secret carries GEMINI_API_KEY into the container. It is NOT the only
+# copy of that key -- the earlier note here saying so was wrong and cost an agent a
+# blocked fleet run. For anything running LOCALLY, pull it from AWS Secrets Manager
+# instead (verified 27.07.2026): secret `otsofy-llm-api-keys-usw2` is a JSON blob and
+# the key is the `google_ai_api_key` field, which is why searching SM for a secret
+# NAMED gemini finds nothing.
+#   export GEMINI_API_KEY="$(aws secretsmanager get-secret-value \
+#     --secret-id otsofy-llm-api-keys-usw2 --profile default --region us-west-2 \
+#     --query SecretString --output text \
+#     | python3 -c 'import json,sys;print(json.load(sys.stdin)["google_ai_api_key"])')"
 SECRETS = _optional_secrets(["gemini-api-secret", "wandb-secret",
                              "huggingface-secret-refresh"])
 
